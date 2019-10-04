@@ -5,9 +5,12 @@ INC=-I ~/ntcore/src/main/native/include -I ~/wpiutil/src/main/native/include -I 
 
 GXX=g++ $(CFLAGS) $(INC)
 
-.PHONY: all clean
+.PHONY: all clean run
 
 all: vision_pipeline
+
+run: vision_pipeline
+	./vision_pipeline
 
 %.o: %.cpp
 	$(GXX) -c -o $@ $<
