@@ -25,18 +25,18 @@ int main(int args, char** argss){
 
     // set up the camera
     std::cout << "setting up camera" << std::endl;
-  //  SET_NO_CAP(cap.set(cv::CAP_PROP_FRAME_WIDTH,544));
-  //  SET_NO_CAP(cap.set(cv::CAP_PROP_FRAME_HEIGHT,960));
+    SET_NO_CAP(cap.set(cv::CAP_PROP_FRAME_WIDTH,544));
+    SET_NO_CAP(cap.set(cv::CAP_PROP_FRAME_HEIGHT,960));
     SET_NO_CAP(cap.set(cv::CAP_PROP_FPS,20));
 //    cap.set(cv::CAP_PROP_FORMAT,cv::CAP_MODE_YUYV); // opencv doesn't like this :(
-  //  SET_NO_CAP(cap.set(cv::VIDEOWRITER_PROP_QUALITY,10));
-  //  SET_NO_CAP(cap.set(cv::CAP_PROP_CONTRAST,5));
-  //  SET_NO_CAP(cap.set(cv::CAP_PROP_SHARPNESS,50));
+    SET_NO_CAP(cap.set(cv::VIDEOWRITER_PROP_QUALITY,10));
+    SET_NO_CAP(cap.set(cv::CAP_PROP_CONTRAST,5));
+    SET_NO_CAP(cap.set(cv::CAP_PROP_SHARPNESS,50));
     // missing - color balance
-    // not found? commenting out bc we don't have cb either cap.set(cv::CAP_PROP_WB_TEMPERATURE,2800);    
-  //  SET_NO_CAP(cap.set(cv::CAP_PROP_AUTO_EXPOSURE,1)); 
-  //  SET_NO_CAP(cap.set(cv::CAP_PROP_EXPOSURE,5));
-  //  SET_NO_CAP(cap.set(cv::CAP_PROP_BACKLIGHT,0));
+    // not found? commenting out bc we don't have cb either // cap.set(cv::CAP_PROP_WB_TEMPERATURE,2800);    
+    SET_NO_CAP(cap.set(cv::CAP_PROP_AUTO_EXPOSURE,1)); 
+    SET_NO_CAP(cap.set(cv::CAP_PROP_EXPOSURE,5));
+    // SET_NO_CAP(cap.set(cv::CAP_PROP_BACKLIGHT,0)); -- not really needed, as we control the backlight
     // missing - chromagain
     std::cout << "setting up done" << std::endl;
 //    return 1;
