@@ -2,6 +2,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <iostream>
 #include <stdio.h>
 
@@ -20,6 +21,7 @@ int main(int args, char** argss){
     // OR advance usage: select any API backend
     int deviceID = 0;             // 0 = open default camera
     int apiID = cv::CAP_ANY;      // 0 = autodetect default API
+
 
     cap.open(deviceID + apiID);
 
@@ -64,11 +66,22 @@ int main(int args, char** argss){
         //break;
         // show live and wait for a key with timeout long enough to show images
 //        imshow("Live", frame);
-        // std::cout << "cols:" << frame.cols << "yeo" << std::endl;
+        // std::cout << "cols:" << frame.cols << " rows: " << frame.rows << std::endl;
         // std::cout << "is empty : " << frame.empty() << "" << std::endl;
-        uint16_t test = frame.at<uint16_t>(0,0);
-        printf("%d",test);
-        //for (int r = 0;r<frame.rows;r++){
+         //uint16_t green = frame.at<uint16_t>(0,0);
+         //printf("%d",green);
+         // printf("Matrix: %d %dx%d \n", frame.type(), frame.cols, frame.rows );
+         cv::Mat img_hsv;
+         cv::cvtColor(frame,img_hsv,CV_RGB2HSV); 
+         cv::Vec3b c = img_hsv.at<cv::Vec3b>(100,100);
+         
+         // printf("%d:%d:%d",c[0],c[1],c[2]);
+         // find the contours
+         // 
+
+
+
+       // for (int r = 0;r<frame.rows;r++){
         //  std::cout << "[";
         //  for (int c = 0;c<frame.cols;c++){
         //    uint8_t green = frame.data[r*frame.cols*frame.channels() + c*frame.channels() + 1];
