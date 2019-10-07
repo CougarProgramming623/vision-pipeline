@@ -50,8 +50,6 @@ int main(int args, char** argss){
         return -1;
     }
     //--- GRAB AND WRITE LOOP
-    std::cout << "Start grabbing" << std::endl
-        << "Press any key to terminate" << std::endl;
     for (;;)
     {
         // wait for a new frame from camera and store it into 'frame'
@@ -74,26 +72,25 @@ int main(int args, char** argss){
          cv::Mat img_hsv;
          cv::cvtColor(frame,img_hsv,CV_RGB2HSV); 
          cv::Vec3b c = img_hsv.at<cv::Vec3b>(100,100);
+         printf("%d:%d:%d ",c[0],c[1],c[2]);
          
-         // printf("%d:%d:%d",c[0],c[1],c[2]);
-         // find the contours
-         // 
-
-
-
-       // for (int r = 0;r<frame.rows;r++){
-        //  std::cout << "[";
-        //  for (int c = 0;c<frame.cols;c++){
-        //    uint8_t green = frame.data[r*frame.cols*frame.channels() + c*frame.channels() + 1];
-        //    printf("%d,",green);
-        //    break;
-        //  }
-        //  std::cout << "]";
-        //  break;
-        //}
-        std::cout << std::endl;
-//        if (cv::waitKey(5) >= 0)
-//            break;
+         // mask by hsvThreashold
+         double hue[] = {33.99280575539568, 93.99317406143345};
+	     double sat[] = {100.89928057553958, 255.0};
+         double val[] = {169.69424460431654, 255.0};
+         cv::Mat img_filtered;
+         cv::inRange(img_hsv,cv::Scalar(hue[0],sat[0],val[0]),cv::Scalar(hue[1],sat[1],val[1]),img_filtered);
+         // ASSERT img_filtered.type() == 0
+         // this is a 8-bit integer with 1 channel
+         // https://stackoverflow.com/questions/10167534/how-to-find-out-what-type-of-a-mat-object-is-with-mattype-in-opencv
+         // printf("Filtered Matrix: %d\n",img_filtered.type());    
+         // print the top row, for debugging
+         //for(int i = 0;i < img_filtered.rows; i+=10){
+         //  uint8_t maskedPixel = img_filtered.at<cv::Vec3b>(0,i)[0]; // get the first channel - there is only one channel
+         //  printf(maskedPixel ? "1" : "0"); 
+         //}
+         // cv::Mat camera_matrix = cv::getOptimalNewCameraMatrix(0,0,0,0);
+         std::cout << std::endl;
     }
     // the camera will be deinitialized automatically in VideoCapture destructor
     return 0;
