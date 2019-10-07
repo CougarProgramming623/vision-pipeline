@@ -12,6 +12,10 @@
     } \
     std::cout << "Done with " << #STATEMENT << std::endl;  
 
+void findContours(cv::Mat &, bool , std::vector<std::vector<cv::Point> > &);
+void filterContours(std::vector<std::vector<cv::Point> > &, double , double , double , double , double , double , double [], double , double , double , double , std::vector<std::vector<cv::Point> > &);
+
+
 int main(int args, char** argss){
     cv::Mat frame;
     //--- INITIALIZE VIDEOCAPTURE
@@ -83,15 +87,105 @@ int main(int args, char** argss){
          // ASSERT img_filtered.type() == 0
          // this is a 8-bit integer with 1 channel
          // https://stackoverflow.com/questions/10167534/how-to-find-out-what-type-of-a-mat-object-is-with-mattype-in-opencv
-         // printf("Filtered Matrix: %d\n",img_filtered.type());    
-         // print the top row, for debugging
-         //for(int i = 0;i < img_filtered.rows; i+=10){
-         //  uint8_t maskedPixel = img_filtered.at<cv::Vec3b>(0,i)[0]; // get the first channel - there is only one channel
-         //  printf(maskedPixel ? "1" : "0"); 
-         //}
-         // cv::Mat camera_matrix = cv::getOptimalNewCameraMatrix(0,0,0,0);
+         std::vector<std::vector<cv::Point>> og_contours;
+         findContours(img_filtered,false,og_contours);
+         // filter contours
+         std::vector<std::vector<cv::Point>> contours;
+         double filterContoursMinArea = 0;  // default Double
+         double filterContoursMinPerimeter = 100.0;  // default Double
+         double filterContoursMinWidth = 0;  // default Double
+         double filterContoursMaxWidth = 1000;  // default Double
+         double filterContoursMinHeight = 0;  // default Double
+         double filterContoursMaxHeight = 1000;  // default Double
+         double filterContoursSolidity[] = {0, 100};
+         double filterContoursMaxVertices = 1000000;  // default Double
+         double filterContoursMinVertices = 0;  // default Double
+         double filterContoursMinRatio = 0;  // default Double
+         double filterContoursMaxRatio = 1000;  // default Double
+         filterContours(og_contours, 
+                        filterContoursMinArea,
+                        filterContoursMinPerimeter,
+                        filterContoursMinWidth,
+                        filterContoursMaxWidth,
+                        filterContoursMinHeight,
+                        filterContoursMaxHeight,
+                        filterContoursSolidity,
+                        filterContoursMaxVertices,
+                        filterContoursMinVertices,
+                        filterContoursMinRatio,
+                        filterContoursMaxRatio, contours);
+         for( uint8_t i = 0; i < contours.size(); i++){
+             cv::RotatedRect rectangle = cv::minAreaRect(contours[i]); // for testing
+             printf("%fx%frect turned %f degrees at %fx%f",
+                    rectangle.size.width,rectangle.size.height,
+                    rectangle.angle,
+                    rectangle.center.x, rectangle.center.y);
+         }
          std::cout << std::endl;
     }
     // the camera will be deinitialized automatically in VideoCapture destructor
     return 0;
 }
+
+
+
+
+
+
+
+// these functions are, I assume, written by GRIP.
+//    as they have documentation
+
+
+/**
+ * Finds contours in an image.
+ *
+ * @param input The image to find contours in.
+ * @param externalOnly if only external contours are to be found.
+ * @param contours vector of contours to put contours in.
+ */
+void findContours(cv::Mat &input, bool externalOnly, std::vector<std::vector<cv::Point> > &contours) {
+	std::vector<cv::Vec4i> hierarchy;
+	contours.clear();
+	int mode = externalOnly ? cv::RETR_EXTERNAL : cv::RETR_LIST;
+	int method = cv::CHAIN_APPROX_SIMPLE;
+	cv::findContours(input, contours, hierarchy, mode, method);
+}
+
+
+/**
+ * Filters through contours.
+ * @param inputContours is the input vector of contours.
+ * @param minArea is the minimum area of a contour that will be kept.
+ * @param minPerimeter is the minimum perimeter of a contour that will be kept.
+ * @param minWidth minimum width of a contour.
+ * @param maxWidth maximum width.
+ * @param minHeight minimum height.
+ * @param maxHeight  maximimum height.
+ * @param solidity the minimum and maximum solidity of a contour.
+ * @param minVertexCount minimum vertex Count of the contours.
+ * @param maxVertexCount maximum vertex Count.
+ * @param minRatio minimum ratio of width to height.
+ * @param maxRatio maximum ratio of width to height.
+ * @param output vector of filtered contours.
+ */
+void filterContours(std::vector<std::vector<cv::Point> > &inputContours, double minArea, double minPerimeter, double minWidth, double maxWidth, double minHeight, double maxHeight, double solidity[], double maxVertexCount, double minVertexCount, double minRatio, double maxRatio, std::vector<std::vector<cv::Point> > &output) {
+	std::vector<cv::Point> hull;
+	output.clear();
+	for (std::vector<cv::Point> contour: inputContours) {
+		cv::Rect bb = boundingRect(contour);
+		if (bb.width < minWidth || bb.width > maxWidth) continue;
+		if (bb.height < minHeight || bb.height > maxHeight) continue;
+		double area = cv::contourArea(contour);
+		if (area < minArea) continue;
+		if (arcLength(contour, true) < minPerimeter) continue;
+		cv::convexHull(cv::Mat(contour, true), hull);
+		double solid = 100 * area / cv::contourArea(hull);
+		if (solid < solidity[0] || solid > solidity[1]) continue;
+		if (contour.size() < minVertexCount || contour.size() > maxVertexCount)	continue;
+		double ratio = (double) bb.width / (double) bb.height;
+		if (ratio < minRatio || ratio > maxRatio) continue;
+		output.push_back(contour);
+	}
+}
+
