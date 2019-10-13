@@ -1,5 +1,5 @@
 
-#include <opencv2/core.hpp>
+#include "opencv2/core.hpp"
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -74,7 +74,7 @@ int main(int args, char** argss){
          //printf("%d",green);
          // printf("Matrix: %d %dx%d \n", frame.type(), frame.cols, frame.rows );
          cv::Mat img_hsv;
-         cv::cvtColor(frame,img_hsv,CV_RGB2HSV); 
+         cv::cvtColor(frame,img_hsv,cv::COLOR_RGB2HSV); 
          cv::Vec3b c = img_hsv.at<cv::Vec3b>(100,100);
          printf("%d:%d:%d ",c[0],c[1],c[2]);
          
@@ -114,13 +114,25 @@ int main(int args, char** argss){
                         filterContoursMinVertices,
                         filterContoursMinRatio,
                         filterContoursMaxRatio, contours);
-         for( uint8_t i = 0; i < contours.size(); i++){
-             cv::RotatedRect rectangle = cv::minAreaRect(contours[i]); // for testing
-             printf("%fx%frect turned %f degrees at %fx%f",
-                    rectangle.size.width,rectangle.size.height,
-                    rectangle.angle,
-                    rectangle.center.x, rectangle.center.y);
-         }
+         //for( uint8_t i = 0; i < contours.size(); i++){
+             //cv::RotatedRect rectangle = cv::minAreaRect(contours[i]); // for testing
+             //rectangle.size;
+             //printf("%fx%frect turned %f degrees at %fx%f",
+             //       rectangle.size.width,rectangle.size.height,
+             //       rectangle.angle,
+             //       rectangle.center.x, rectangle.center.y);
+         //}
+
+
+
+         // m a t h
+         
+         // actually, read from the conf file first
+         cv::FileStorage fs;
+         fs.open("param.yaml",cv::FileStorage::READ);
+         std::cout << fs["calibration_time"].string(); 
+         
+
          std::cout << std::endl;
     }
     // the camera will be deinitialized automatically in VideoCapture destructor
