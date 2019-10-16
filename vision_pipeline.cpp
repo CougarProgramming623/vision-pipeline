@@ -3,14 +3,14 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include "opencv2/calib3d.hpp"
 #include <iostream>
 #include <stdio.h>
 
-#define SET_NO_CAP(STATEMENT) std::cout << "Preforming " << #STATEMENT << std::endl; \
+#define SET_WITH_CHECK(STATEMENT) \
     if(!STATEMENT){ \
       std::cerr << #STATEMENT << " is not supported by the video backend" << std::endl; \
-    } \
-    std::cout << "Done with " << #STATEMENT << std::endl;  
+    };  
 
 void findContours(cv::Mat &, bool , std::vector<std::vector<cv::Point> > &);
 void filterContours(std::vector<std::vector<cv::Point> > &, double , double , double , double , double , double , double [], double , double , double , double , std::vector<std::vector<cv::Point> > &);
@@ -31,18 +31,18 @@ int main(int args, char** argss){
 
     // set up the camera
     std::cout << "setting up camera" << std::endl;
-    SET_NO_CAP(cap.set(cv::CAP_PROP_FRAME_WIDTH,544));
-    SET_NO_CAP(cap.set(cv::CAP_PROP_FRAME_HEIGHT,960));
-    SET_NO_CAP(cap.set(cv::CAP_PROP_FPS,20));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_WIDTH,544));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_HEIGHT,960));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FPS,20));
 //    cap.set(cv::CAP_PROP_FORMAT,cv::CAP_MODE_YUYV); // opencv doesn't like this :(
-    SET_NO_CAP(cap.set(cv::VIDEOWRITER_PROP_QUALITY,10));
-    SET_NO_CAP(cap.set(cv::CAP_PROP_CONTRAST,5));
-    SET_NO_CAP(cap.set(cv::CAP_PROP_SHARPNESS,50));
+    SET_WITH_CHECK(cap.set(cv::VIDEOWRITER_PROP_QUALITY,10));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_CONTRAST,5));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_SHARPNESS,50));
     // missing - color balance
     // not found? commenting out bc we don't have cb either // cap.set(cv::CAP_PROP_WB_TEMPERATURE,2800);    
-    SET_NO_CAP(cap.set(cv::CAP_PROP_AUTO_EXPOSURE,1)); 
-    SET_NO_CAP(cap.set(cv::CAP_PROP_EXPOSURE,5));
-    // SET_NO_CAP(cap.set(cv::CAP_PROP_BACKLIGHT,0)); -- not really needed, as we control the backlight
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_AUTO_EXPOSURE,1)); 
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_EXPOSURE,5));
+    // SET_WITH_CHECK(cap.set(cv::CAP_PROP_BACKLIGHT,0)); -- not really needed, as we control the backlight
     // missing - chromagain
     std::cout << "setting up done" << std::endl;
 //    return 1;
@@ -63,8 +63,8 @@ int main(int args, char** argss){
             std::cerr << "ERROR! blank frame grabbed\n";
             break;
         }
-        //printf("channels: %d\ntype: %d\n",frame.channels(),frame.type());
-        //std::cout << std::endl;
+        printf("channels: %d\ntype: %d\n",frame.channels(),frame.type());
+        std::cout << std::endl;
         //break;
         // show live and wait for a key with timeout long enough to show images
 //        imshow("Live", frame);
@@ -126,12 +126,24 @@ int main(int args, char** argss){
 
 
          // m a t h
-         
+         continue; 
          // actually, read from the conf file first
          cv::FileStorage fs;
          fs.open("param.yaml",cv::FileStorage::READ);
-         std::cout << fs["calibration_time"].string(); 
+         cv::Mat cameraMatrix = fs["camera_matrix"].mat(); 
+         continue;
+         cv::Mat objectPoints = fs["grid_points"].mat();
+         cv::Mat imagePoints = fs["image_points"].mat();
+         cv::Mat distCoeff = fs["distortion_coefficients"].mat();
          
+         cv::Mat rvec;
+         cv::Mat tvec;
+         continue;
+         bool yes = cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec,tvec);
+         std::cout << yes;
+         std::cout << tvec;  
+
+
 
          std::cout << std::endl;
     }
