@@ -17,6 +17,19 @@ void filterContours(std::vector<std::vector<cv::Point> > &, double , double , do
 
 
 int main(int args, char** argss){
+    std::cout << "readnig from param.yaml" << std::endl;
+
+    cv::FileStorage fs;
+    fs.open("param.yaml",cv::FileStorage::READ);
+    cv::Mat cameraMatrix = fs["camera_matrix"].mat();
+    
+    cv::Mat objectPoints = fs["grid_points"].mat();
+    cv::Mat imagePoints = fs["image_points"].mat();
+    cv::Mat distCoeff = fs["distortion_coefficients"].mat();
+
+
+
+
     cv::Mat frame;
     //--- INITIALIZE VIDEOCAPTURE
     cv::VideoCapture cap;
@@ -126,19 +139,8 @@ int main(int args, char** argss){
 
 
          // m a t h
-         continue; 
-         // actually, read from the conf file first
-         cv::FileStorage fs;
-         fs.open("param.yaml",cv::FileStorage::READ);
-         cv::Mat cameraMatrix = fs["camera_matrix"].mat(); 
-         continue;
-         cv::Mat objectPoints = fs["grid_points"].mat();
-         cv::Mat imagePoints = fs["image_points"].mat();
-         cv::Mat distCoeff = fs["distortion_coefficients"].mat();
-         
          cv::Mat rvec;
          cv::Mat tvec;
-         continue;
          bool yes = cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec,tvec);
          std::cout << yes;
          std::cout << tvec;  
