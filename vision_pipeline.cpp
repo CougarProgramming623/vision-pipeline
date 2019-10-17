@@ -23,10 +23,16 @@ int main(int args, char** argss){
     fs.open("param.yaml",cv::FileStorage::READ);
     cv::Mat cameraMatrix = fs["camera_matrix"].mat();
     
-    cv::Mat objectPoints = fs["grid_points"].mat();
+	std::vector<cv::Point3f> objectPoints;
+    fs["grid_points"] >> objectPoints;
+    // std::cout << objectPoints;
+     
+ 
     cv::Mat imagePoints = fs["image_points"].mat();
     cv::Mat distCoeff = fs["distortion_coefficients"].mat();
-
+    
+    //std::cout << imagePoints;
+    //std::cout << distCoeff;
 
 
 
