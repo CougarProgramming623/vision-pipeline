@@ -1,4 +1,4 @@
-#include "tuple"
+
 #include "opencv2/core.hpp"
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
@@ -16,14 +16,6 @@ void findContours(cv::Mat &, bool , std::vector<std::vector<cv::Point> > &);
 void filterContours(std::vector<std::vector<cv::Point> > &, double , double , double , double , double , double , double [], double , double , double , double , std::vector<std::vector<cv::Point> > &);
 
 
-std::tuple<double,double,double> findPos(cv::Mat rvec,cv::Mat tvec,int x1, int y1){
-    double x = tvec.at<double>(0,0);
-    double z = rvec.at<double>(0,0);
-    double distance = std::sqrt(std::pow(x,2) + std::pow(z,2));
-    double angle1 = std::atan2(x,z) * 180 / 3.141598;
-    return std::make_tuple(distance,angle1,0.0);
-}
-
 int main(int args, char** argss){
     std::cout << "readnig from param.yaml" << std::endl;
 
@@ -38,44 +30,24 @@ int main(int args, char** argss){
 
     cv::Mat imagePoints = fs["image_points"].mat(); // 13: CV_32F
     cv::Mat distCoeff = fs["distortion_coefficients"].mat(); // 6: CV_64F  
-   
-    cv::Mat testImagePoints(imagePoints.row(0));
-    printf("test type:%d\n",testImagePoints.type());
-    imagePoints = testImagePoints; 
-
-    cv::Mat opoints = ((cv::InputArray)objectPoints).getMat();
-    printf("opoints:%d\n",opoints.type());// 21: CV_32FC3
-    cv::Mat ipoints = ((cv::InputArray)imagePoints).getMat();
-    int npoints = std::max(opoints.checkVector(3,/*CV_32F*/5), opoints.checkVector(3, /*CV_64F*/6));
-    bool a = (npoints >= 4);
-    bool b = false;
-    bool c = npoints == std::max(ipoints.checkVector(2,/*CV_32F*/5), ipoints.checkVector(2,/*CV_64F*/6));
-
-    std::cout << "a:" << a << " b:" << b <<  " c:" << c << std::endl;
     
-    printf("opoints.checkVector(3,5): %d\n",opoints.checkVector(3,5));
-    printf("opoints.checkVector(3,6): %d\n",opoints.checkVector(3,6));
-    printf("npoints:%d\n",npoints);
-    printf("ipoints.checkVector(2,5): %d\n",ipoints.checkVector(2,5));
-    printf("ipoints.checkVector(2,6): %d\n",ipoints.checkVector(2,6)); 
-    printf("opoints -- rows:%d col:%d\n",opoints.rows,opoints.cols);
-    printf("ipoints -- rows:%d col:%d\n",ipoints.rows,ipoints.cols);
-    printf("cameraMatrix: %d iPoints: %d distCoeff: %d opoints: %d\n",
-            cameraMatrix.type(), ipoints.type(), distCoeff.type(),opoints.type());
+
+    cv::Mat opoints = objectPoints.getMat();
+    cv::Mat ipoints = imagePoints.getMat();
+    int npoints = std::max(opoints.checkVector(3, CV_32F), opoints.checkVector(3, CV_64F));
+    CV_Assert( ( (npoints >= 4) || (npoints == 3 && flags == SOLVEPNP_ITERATIVE && useExtrinsicGuess) )
+               && npoints == std::max(ipoints.checkVector(2, CV_32F), ipoints.checkVector(2, CV_64F)) );
+
+
+    printf("cameraMatrix: %d imagePoints: %d distCoeff: %d\n",
+            cameraMatrix.type(), imagePoints.type(), distCoeff.type());
 
     cv::Mat rvec2;
     cv::Mat tvec2;
     bool no = cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec2,tvec2);
 
-    std::cout << "no: " << no << std::endl;
-    std::cout << "rvec2: " << rvec2 << std::endl;
-    std::cout << "tvec2: " << tvec2 << std::endl;
-   
-    std::tuple<double,double,double> out = findPos(rvec2,tvec2,0,0);
-    printf("distance: %f\nangle1:%f\nangle2:%f\n",
-            std::get<0>(out),std::get<1>(out),std::get<2>(out)); 
-     return 0;
-     // YAY!
+    std::cout << "no " << no << std::endl;
+    return 0;
     
     //std::cout << imagePoints;
     //std::cout << distCoeff;
