@@ -115,7 +115,7 @@ int main(int args, char** argss){
     // missing - color balance
     // not found? commenting out bc we don't have cb either // cap.set(cv::CAP_PROP_WB_TEMPERATURE,2800);    
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_AUTO_EXPOSURE,1)); 
-    SET_WITH_CHECK(cap.set(cv::CAP_PROP_EXPOSURE,5));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_EXPOSURE,9));
     // missing - chromagain
     std::cout << "setting up done" << std::endl;
 //    return 1;
