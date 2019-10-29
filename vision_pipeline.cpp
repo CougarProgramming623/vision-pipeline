@@ -28,7 +28,7 @@ cv::Mat findPos(cv::Mat rvec,cv::Mat tvec,int x1, int y1){
     cv::Mat XWorld = rotMat.t() * (XCamera - tvec);
     printf("XWorld type: %d\n",XWorld.type());
     printf("XWorld:");
-//    std::cout << XWorld << std::endl;
+    std::cout << XWorld << std::endl;
 //    cv XCamera - tvec 
     return XWorld;
 }
@@ -98,17 +98,17 @@ int main(int args, char** argss){
     // cap.open(0);
     // OR advance usage: select any API backend
     int deviceID = 0;             // 0 = open default camera
-    int apiID = cv::CAP_ANY;      // 0 = autodetect default API
+    int apiID = cv::CAP_V4L2;      // 0 = autodetect default API
 
 
     cap.open(deviceID + apiID);
-
+    std::cout << "api: " << apiID << std::endl;
     // set up the camera
     std::cout << "setting up camera" << std::endl;
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_WIDTH,544));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_HEIGHT,960));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_FPS,20));
-//    cap.set(cv::CAP_PROP_FORMAT,cv::CAP_MODE_YUYV); // opencv doesn't like this :(
+   // cap.set(cv::CAP_PROP_CONVERT_RGB,0);
     SET_WITH_CHECK(cap.set(cv::VIDEOWRITER_PROP_QUALITY,10));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_CONTRAST,5));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_SHARPNESS,50));
@@ -116,7 +116,6 @@ int main(int args, char** argss){
     // not found? commenting out bc we don't have cb either // cap.set(cv::CAP_PROP_WB_TEMPERATURE,2800);    
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_AUTO_EXPOSURE,1)); 
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_EXPOSURE,5));
-    // SET_WITH_CHECK(cap.set(cv::CAP_PROP_BACKLIGHT,0)); -- not really needed, as we control the backlight
     // missing - chromagain
     std::cout << "setting up done" << std::endl;
 //    return 1;
@@ -127,6 +126,10 @@ int main(int args, char** argss){
         std::cerr << "ERROR! Unable to open camera\n";
         return -1;
     }
+
+  
+
+
     //--- GRAB AND WRITE LOOP
     for (;;)
     {
@@ -136,10 +139,12 @@ int main(int args, char** argss){
         // check if we succeeded
         if (frame.empty()) {
             std::cerr << "ERROR! blank frame grabbed\n";
-            break;
+            //break;
+            continue;
         }
         printf("channels: %d\ntype: %d\n",frame.channels(),frame.type());
         std::cout << std::endl;
+        continue;
         //break;
         // show live and wait for a key with timeout long enough to show images
 //        imshow("Live", frame);
@@ -150,20 +155,23 @@ int main(int args, char** argss){
          // printf("Matrix: %d %dx%d \n", frame.type(), frame.cols, frame.rows );
          cv::Mat img_hsv;
          cv::cvtColor(frame,img_hsv,cv::COLOR_RGB2HSV); 
+         frame.release();
          cv::Vec3b c = img_hsv.at<cv::Vec3b>(100,100);
          printf("%d:%d:%d ",c[0],c[1],c[2]);
-         
+         continue;         
          // mask by hsvThreashold
          double hue[] = {33.99280575539568, 93.99317406143345};
 	     double sat[] = {100.89928057553958, 255.0};
          double val[] = {169.69424460431654, 255.0};
          cv::Mat img_filtered;
          cv::inRange(img_hsv,cv::Scalar(hue[0],sat[0],val[0]),cv::Scalar(hue[1],sat[1],val[1]),img_filtered);
+         img_hsv.release();
          // ASSERT img_filtered.type() == 0
          // this is a 8-bit integer with 1 channel
          // https://stackoverflow.com/questions/10167534/how-to-find-out-what-type-of-a-mat-object-is-with-mattype-in-opencv
          std::vector<std::vector<cv::Point>> og_contours;
          findContours(img_filtered,false,og_contours);
+         img_filtered.release();
          // filter contours
          std::vector<std::vector<cv::Point>> contours;
          double filterContoursMinArea = 0;  // default Double
@@ -218,8 +226,9 @@ int main(int args, char** argss){
                             
         cv::Mat xWorld = findPos(rvec, tvec, x, y);
 
-
-         std::cout << std::endl;
+        xWorld.release();
+       
+        std::cout << std::endl;
     }
     // the camera will be deinitialized automatically in VideoCapture destructor
     return 0;

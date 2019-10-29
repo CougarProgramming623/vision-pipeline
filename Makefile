@@ -16,7 +16,7 @@ GXX=g++ $(CFLAGS) $(INC)
 all: vision_pipeline
 
 run: vision_pipeline
-	./vision_pipeline
+	OPENCV_VIDEOIO_DEBUG=1 OPENCV_LOG_LEVEL=debug ./vision_pipeline
 
 %.o: %.cpp
 	$(GXX) -c -o $@ $<
