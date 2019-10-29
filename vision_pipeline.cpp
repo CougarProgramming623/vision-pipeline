@@ -16,12 +16,21 @@ void findContours(cv::Mat &, bool , std::vector<std::vector<cv::Point> > &);
 void filterContours(std::vector<std::vector<cv::Point> > &, double , double , double , double , double , double , double [], double , double , double , double , std::vector<std::vector<cv::Point> > &);
 
 
-std::tuple<double,double,double> findPos(cv::Mat rvec,cv::Mat tvec,int x1, int y1){
-    double x = tvec.at<double>(0,0);
-    double z = rvec.at<double>(0,0);
-    double distance = std::sqrt(std::pow(x,2) + std::pow(z,2));
-    double angle1 = std::atan2(x,z) * 180 / 3.141598;
-    return std::make_tuple(distance,angle1,0.0);
+//std::tuple<double,double,double>
+cv::Mat findPos(cv::Mat rvec,cv::Mat tvec,int x1, int y1){
+    double xCameraF[] = {static_cast<double>(x1),static_cast<double>(y1),0.0};
+    printf("tvec type: %d\n",tvec.type());
+    cv::Mat XCamera(3, 1, 6, xCameraF); // CV_64F 
+    cv::Mat rotMat;
+    cv::Rodrigues(rvec, rotMat);
+    cv::Mat tempWorld = XCamera - tvec;
+    printf("succ. sub. Type: %d\n", tempWorld.type());
+    cv::Mat XWorld = rotMat.t() * (XCamera - tvec);
+    printf("XWorld type: %d\n",XWorld.type());
+    printf("XWorld:");
+//    std::cout << XWorld << std::endl;
+//    cv XCamera - tvec 
+    return XWorld;
 }
 
 int main(int args, char** argss){
@@ -63,18 +72,18 @@ int main(int args, char** argss){
     printf("cameraMatrix: %d iPoints: %d distCoeff: %d opoints: %d\n",
             cameraMatrix.type(), ipoints.type(), distCoeff.type(),opoints.type());
 
-    cv::Mat rvec2;
-    cv::Mat tvec2;
-    bool no = cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec2,tvec2);
+    //cv::Mat rvec2;
+    //cv::Mat tvec2;
+    //bool no = cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec2,tvec2);
 
-    std::cout << "no: " << no << std::endl;
-    std::cout << "rvec2: " << rvec2 << std::endl;
-    std::cout << "tvec2: " << tvec2 << std::endl;
+    //std::cout << "no: " << no << std::endl;
+    //std::cout << "rvec2: " << rvec2 << std::endl;
+    //std::cout << "tvec2: " << tvec2 << std::endl;
    
-    std::tuple<double,double,double> out = findPos(rvec2,tvec2,0,0);
-    printf("distance: %f\nangle1:%f\nangle2:%f\n",
-            std::get<0>(out),std::get<1>(out),std::get<2>(out)); 
-     return 0;
+    //findPos(rvec2,tvec2,0,0);
+    //printf("distance: %f\nangle1:%f\nangle2:%f\n",
+    //        std::get<0>(out),std::get<1>(out),std::get<2>(out)); 
+    // return 0;
      // YAY!
     
     //std::cout << imagePoints;
@@ -121,7 +130,8 @@ int main(int args, char** argss){
     //--- GRAB AND WRITE LOOP
     for (;;)
     {
-        // wait for a new frame from camera and store it into 'frame'
+        printf("reading frame...\n");  
+      // wait for a new frame from camera and store it into 'frame'
         cap.read(frame);
         // check if we succeeded
         if (frame.empty()) {
@@ -187,16 +197,26 @@ int main(int args, char** argss){
              //       rectangle.angle,
              //       rectangle.center.x, rectangle.center.y);
          //}
-
+         // first one
+         if( contours.size() == 0){
+           printf(" No contours\n");
+           continue;
+         }
 
 
          // m a t h
          cv::Mat rvec;
          cv::Mat tvec;
          bool yes = cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec,tvec);
-         std::cout << yes;
-         std::cout << tvec;  
-
+         std::cout << "yes: " << yes << std::endl;
+         std::cout << "tvec: " << tvec << std::endl;
+         std::cout << "rvec: " << rvec << std::endl;
+         cv::RotatedRect rect = cv::minAreaRect(contours[0]);
+         int x = rect.center.x;
+         int y = rect.center.y;  
+         printf("(%d,%d)",x,y);
+                            
+        cv::Mat xWorld = findPos(rvec, tvec, x, y);
 
 
          std::cout << std::endl;
