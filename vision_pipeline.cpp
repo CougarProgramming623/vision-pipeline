@@ -19,18 +19,28 @@ void filterContours(std::vector<std::vector<cv::Point> > &, double , double , do
 //std::tuple<double,double,double>
 cv::Mat findPos(cv::Mat rvec,cv::Mat tvec,int x1, int y1){
     double xCameraF[] = {static_cast<double>(x1),static_cast<double>(y1),0.0};
-    printf("tvec type: %d\n",tvec.type());
+//    printf("tvec type: %d\n",tvec.type());
     cv::Mat XCamera(3, 1, 6, xCameraF); // CV_64F 
     cv::Mat rotMat;
     cv::Rodrigues(rvec, rotMat);
     cv::Mat tempWorld = XCamera - tvec;
-    printf("succ. sub. Type: %d\n", tempWorld.type());
+//    printf("succ. sub. Type: %d\n", tempWorld.type());
     cv::Mat XWorld = rotMat.t() * (XCamera - tvec);
-    printf("XWorld type: %d\n",XWorld.type());
-    printf("XWorld:");
-    std::cout << XWorld << std::endl;
+//    printf("XWorld type: %d\n",XWorld.type());
+//    printf("XWorld:");
+    //std::cout << XWorld << std::endl;
 //    cv XCamera - tvec 
     return XWorld;
+}
+
+std::tuple<int,int> focusContours(std::vector<std::vector<cv::Point>> points){
+   cv::RotatedRect rec1 = cv::minAreaRect(points[0]);
+   cv::RotatedRect rec2 = cv::minAreaRect(points[1]);
+   double x = rec1.center.x + rec2.center.x;
+   x /= 2;
+   double y = rec1.center.y + rec2.center.y;
+   y /= 2;
+   return std::make_tuple((int)x,(int)y);   
 }
 
 int main(int args, char** argss){
@@ -41,14 +51,14 @@ int main(int args, char** argss){
     cv::Mat cameraMatrix = fs["camera_matrix"].mat();// 6: CV_64F
     
 	std::vector<cv::Point3f> objectPoints;
-    fs["grid_points"] >> objectPoints;
+    fs["grid_points_real"] >> objectPoints;
     // std::cout << objectPoints;
-     
-
-    cv::Mat imagePoints = fs["image_points"].mat(); // 13: CV_32F
+    std::vector<cv::Point2f> imagePoints;
+    fs["image_points_real"] >> imagePoints;
+    //cv::Mat imagePoints = fs["image_points"].mat(); // 13: CV_32F
     cv::Mat distCoeff = fs["distortion_coefficients"].mat(); // 6: CV_64F  
    
-    cv::Mat testImagePoints(imagePoints.row(0));
+    cv::Mat testImagePoints(imagePoints);
     printf("test type:%d\n",testImagePoints.type());
     imagePoints = testImagePoints; 
 
@@ -105,8 +115,8 @@ int main(int args, char** argss){
     std::cout << "api: " << apiID << std::endl;
     // set up the camera
     std::cout << "setting up camera" << std::endl;
-    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_WIDTH,544));
-    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_HEIGHT,960));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_WIDTH,288));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_HEIGHT,352));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_FPS,20));
    // cap.set(cv::CAP_PROP_CONVERT_RGB,0);
     SET_WITH_CHECK(cap.set(cv::VIDEOWRITER_PROP_QUALITY,10));
@@ -133,7 +143,7 @@ int main(int args, char** argss){
     //--- GRAB AND WRITE LOOP
     for (;;)
     {
-        printf("reading frame...\n");  
+   //     printf("reading frame...\n");  
       // wait for a new frame from camera and store it into 'frame'
         cap.read(frame);
         // check if we succeeded
@@ -142,9 +152,9 @@ int main(int args, char** argss){
             //break;
             continue;
         }
-        printf("channels: %d\ntype: %d\n",frame.channels(),frame.type());
-        std::cout << std::endl;
-        continue;
+ //       printf("channels: %d\ntype: %d\n",frame.channels(),frame.type());
+ //       std::cout << std::endl;
+//        continue;
         //break;
         // show live and wait for a key with timeout long enough to show images
 //        imshow("Live", frame);
@@ -156,9 +166,9 @@ int main(int args, char** argss){
          cv::Mat img_hsv;
          cv::cvtColor(frame,img_hsv,cv::COLOR_RGB2HSV); 
          frame.release();
-         cv::Vec3b c = img_hsv.at<cv::Vec3b>(100,100);
-         printf("%d:%d:%d ",c[0],c[1],c[2]);
-         continue;         
+ //        cv::Vec3b c = img_hsv.at<cv::Vec3b>(100,100);
+ //        printf("%d:%d:%d",c[0],c[1],c[2]);
+         // continue;         
          // mask by hsvThreashold
          double hue[] = {33.99280575539568, 93.99317406143345};
 	     double sat[] = {100.89928057553958, 255.0};
@@ -210,23 +220,44 @@ int main(int args, char** argss){
            printf(" No contours\n");
            continue;
          }
+         if( contours.size() == 1){
+           printf(" One Contour found\n");
+           continue; 
+         }
 
-
+         if( contours.size() != 2){
+//          std::tuple<int,int> xy = findContours       
+            printf("TODO\n");
+            continue;
+         }
+         std::tuple<int,int> xy = focusContours(contours);
+         int x = std::get<0>(xy);
+         int y = std::get<1>(xy);
+         
+         printf("(%4d,%4d)",x,y);
+         std::cout << std::endl;
+         continue;
          // m a t h
          cv::Mat rvec;
          cv::Mat tvec;
-         bool yes = cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec,tvec);
-         std::cout << "yes: " << yes << std::endl;
-         std::cout << "tvec: " << tvec << std::endl;
-         std::cout << "rvec: " << rvec << std::endl;
-         cv::RotatedRect rect = cv::minAreaRect(contours[0]);
-         int x = rect.center.x;
-         int y = rect.center.y;  
-         printf("(%d,%d)",x,y);
-                            
+         cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec,tvec);
+         //std::cout << "yes: " << yes << std::endl;
+         //std::cout << "tvec: " << tvec << std::endl;
+         //std::cout << "rvec: " << rvec << std::endl;
+         //cv::RotatedRect rect = cv::minAreaRect(contours[0]);
+         //int x = rect.center.x;
+         //int y = rect.center.y;  
+         printf("(%10d,%10d)",x,y);
+         std::cout << std::endl;
+         continue;                            
         cv::Mat xWorld = findPos(rvec, tvec, x, y);
-
-        xWorld.release();
+ //       std::cout << "[" << xWorld.at<double>(0) << 
+ //                    "," << xWorld.at<double>(1) << 
+ //                    "," << xWorld.at<double>(2) << "]";
+       printf("[%10f,%10f,%10f]",xWorld.at<double>(0),
+                                 xWorld.at<double>(1),
+                                 xWorld.at<double>(2)); 
+       xWorld.release();
        
         std::cout << std::endl;
     }
@@ -280,19 +311,20 @@ void filterContours(std::vector<std::vector<cv::Point> > &inputContours, double 
 	std::vector<cv::Point> hull;
 	output.clear();
 	for (std::vector<cv::Point> contour: inputContours) {
-		cv::Rect bb = boundingRect(contour);
-		if (bb.width < minWidth || bb.width > maxWidth) continue;
-		if (bb.height < minHeight || bb.height > maxHeight) continue;
-		double area = cv::contourArea(contour);
-		if (area < minArea) continue;
-		if (arcLength(contour, true) < minPerimeter) continue;
-		cv::convexHull(cv::Mat(contour, true), hull);
-		double solid = 100 * area / cv::contourArea(hull);
-		if (solid < solidity[0] || solid > solidity[1]) continue;
-		if (contour.size() < minVertexCount || contour.size() > maxVertexCount)	continue;
-		double ratio = (double) bb.width / (double) bb.height;
-		if (ratio < minRatio || ratio > maxRatio) continue;
-		output.push_back(contour);
-	}
+//		cv::Rect bb = boundingRect(contour);
+//		if (bb.width < minWidth || bb.width > maxWidth) continue;
+//		if (bb.height < minHeight || bb.height > maxHeight) continue;
+//		double area = cv::contourArea(contour);
+//		if (area < minArea) continue;
+//		if (arcLength(contour, true) < minPerimeter) continue;
+//		cv::convexHull(cv::Mat(contour, true), hull);
+//		double solid = 100 * area / cv::contourArea(hull);
+//		if (solid < solidity[0] || solid > solidity[1]) continue;
+//       if (contour.size() < minVertexCount || contour.size() > maxVertexCount) 
+//            continue;
+//        double ratio = (double) bb.width / (double) bb.height;
+//        if (ratio < minRatio || ratio > maxRatio) continue;
+        output.push_back(contour);
+    }
 }
 
