@@ -55,13 +55,14 @@ int main(int args, char** argss){
     // std::cout << objectPoints;
     std::vector<cv::Point2f> imagePoints;
     fs["image_points_real"] >> imagePoints;
+  
     //cv::Mat imagePoints = fs["image_points"].mat(); // 13: CV_32F
     cv::Mat distCoeff = fs["distortion_coefficients"].mat(); // 6: CV_64F  
    
-    cv::Mat testImagePoints(imagePoints);
-    printf("test type:%d\n",testImagePoints.type());
-    imagePoints = testImagePoints; 
-
+    //cv::Mat testImagePoints(imagePoints);
+    //printf("test type:%d\n",testImagePoints.type());
+    //imagePoints = testImagePoints; 
+     std::cout << "obj " << objectPoints << std::endl << "img " << imagePoints << std::endl; 
     cv::Mat opoints = ((cv::InputArray)objectPoints).getMat();
     printf("opoints:%d\n",opoints.type());// 21: CV_32FC3
     cv::Mat ipoints = ((cv::InputArray)imagePoints).getMat();
@@ -234,9 +235,9 @@ int main(int args, char** argss){
          int x = std::get<0>(xy);
          int y = std::get<1>(xy);
          
-         printf("(%4d,%4d)",x,y);
-         std::cout << std::endl;
-         continue;
+         printf("(%4d,%4d)  ",x,y);
+//         std::cout << std::endl;
+//         continue;
          // m a t h
          cv::Mat rvec;
          cv::Mat tvec;
@@ -247,9 +248,9 @@ int main(int args, char** argss){
          //cv::RotatedRect rect = cv::minAreaRect(contours[0]);
          //int x = rect.center.x;
          //int y = rect.center.y;  
-         printf("(%10d,%10d)",x,y);
-         std::cout << std::endl;
-         continue;                            
+//         printf("(%10d,%10d)",x,y);
+//         std::cout << std::endl;
+//         continue;                            
         cv::Mat xWorld = findPos(rvec, tvec, x, y);
  //       std::cout << "[" << xWorld.at<double>(0) << 
  //                    "," << xWorld.at<double>(1) << 
