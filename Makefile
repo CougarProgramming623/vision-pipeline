@@ -1,7 +1,7 @@
 CFLAGS=-Werror -Wall -Wno-psabi -g -Wno-unused-variable
 OBJS=vision_pipeline.o
 
-LIBS=-lcurl -lopencv_calib3d -lopencv_imgcodecs -lopencv_core -l opencv_imgproc -lopencv_highgui -lntcore -lwpiutil -lopencv_videoio -L ~/ntcore/build/libs/ntcore/shared -L ~/wpiutil/build/libs/wpiutil/shared -L /usr/local/lib
+LIBS=-lcurl -lopencv_calib3d -lopencv_imgcodecs -lopencv_core -l opencv_imgproc -lopencv_highgui  -lopencv_videoio -L ~/ntcore/build/libs/ntcore/shared -L ~/wpiutil/build/libs/wpiutil/shared -L /usr/local/lib
 
 INC=-I ~/ntcore/src/main/native/include -I ~/wpiutil/src/main/native/include -I /usr/include/llvm-3.9 -I /usr/include/opencv4 -I /usr/local/include/opencv4
 

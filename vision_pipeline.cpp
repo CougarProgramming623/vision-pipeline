@@ -33,14 +33,48 @@ cv::Mat findPos(cv::Mat rvec,cv::Mat tvec,int x1, int y1){
     return XWorld;
 }
 
-std::tuple<int,int> focusContours(std::vector<std::vector<cv::Point>> points){
-   cv::RotatedRect rec1 = cv::minAreaRect(points[0]);
-   cv::RotatedRect rec2 = cv::minAreaRect(points[1]);
-   double x = rec1.center.x + rec2.center.x;
-   x /= 2;
-   double y = rec1.center.y + rec2.center.y;
-   y /= 2;
-   return std::make_tuple((int)x,(int)y);   
+// calling this with points.size < 1 will make me sad
+cv::Point findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
+    cv::Point extreme = points[0];
+    for(long unsigned int i = 1; i < points.size(); i++){
+        cv::Point p = points[i];
+        int current = 0;
+        int newVal  = 0;
+        if(isX) {
+            current = extreme.x;
+            newVal = p.x;
+        } else {
+            current = extreme.y;
+            newVal = p.y;
+        }
+        if(isMax && newVal < current) { // the origin is at the top left corrner, lower values are "higher"
+            extreme = p;
+        } else if(!isMax && newVal > current){ // higher values are lower, the biggest value is the lowest point (we hope)
+            extreme = p;
+        }
+    }
+    return extreme;
+}
+std::vector<cv::Point> contoursToPoints(std::vector<std::vector<cv::Point>> points){
+   std::vector<cv::Point> c1 = points[0]; // the first contour, the one that's on the left
+   std::vector<cv::Point> c2 = points[1]; // the second contour, the one that's on the right
+   
+   std::vector<cv::Point> r; // the return vertex
+   
+
+   r.push_back(findExtreme(c1,false,true ));
+   r.push_back(findExtreme(c1,true, true ));
+   r.push_back(findExtreme(c1,false,false));
+   r.push_back(findExtreme(c1,true, false));
+
+
+   r.push_back(findExtreme(c1,false,true ));
+   r.push_back(findExtreme(c1,true, true )); 
+   r.push_back(findExtreme(c2,false,false ));
+   r.push_back(findExtreme(c2,true, false ));
+
+
+   return r;
 }
 
 int main(int args, char** argss){
@@ -228,20 +262,21 @@ int main(int args, char** argss){
 
          if( contours.size() != 2){
 //          std::tuple<int,int> xy = findContours       
-            printf("TODO\n");
+            printf("more then one contour found\n");
             continue;
          }
-         std::tuple<int,int> xy = focusContours(contours);
-         int x = std::get<0>(xy);
-         int y = std::get<1>(xy);
+         std::vector<cv::Point> points = contoursToPoints(contours);
+//         int x = std::get<0>(xy);
+//         int y = std::get<1>(xy);
          
-         printf("(%4d,%4d)  ",x,y);
+        // printf("(%4d,%4d)  ",x,y);
+         continue;
 //         std::cout << std::endl;
 //         continue;
          // m a t h
-         cv::Mat rvec;
-         cv::Mat tvec;
-         cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec,tvec);
+         //cv::Mat rvec;
+         //cv::Mat tvec;
+         //cv::solvePnP(objectPoints,imagePoints,cameraMatrix,distCoeff,rvec,tvec);
          //std::cout << "yes: " << yes << std::endl;
          //std::cout << "tvec: " << tvec << std::endl;
          //std::cout << "rvec: " << rvec << std::endl;
@@ -251,14 +286,14 @@ int main(int args, char** argss){
 //         printf("(%10d,%10d)",x,y);
 //         std::cout << std::endl;
 //         continue;                            
-        cv::Mat xWorld = findPos(rvec, tvec, x, y);
+        //cv::Mat xWorld = findPos(rvec, tvec, x, y);
  //       std::cout << "[" << xWorld.at<double>(0) << 
  //                    "," << xWorld.at<double>(1) << 
  //                    "," << xWorld.at<double>(2) << "]";
-       printf("[%10f,%10f,%10f]",xWorld.at<double>(0),
-                                 xWorld.at<double>(1),
-                                 xWorld.at<double>(2)); 
-       xWorld.release();
+       //printf("[%10f,%10f,%10f]",xWorld.at<double>(0),
+       //                          xWorld.at<double>(1),
+       //                          xWorld.at<double>(2)); 
+       //xWorld.release();
        
         std::cout << std::endl;
     }
