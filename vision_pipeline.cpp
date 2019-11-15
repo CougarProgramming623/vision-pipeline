@@ -68,8 +68,8 @@ std::vector<cv::Point> contoursToPoints(std::vector<std::vector<cv::Point>> poin
    r.push_back(findExtreme(c1,true, false));
 
 
-   r.push_back(findExtreme(c1,false,true ));
-   r.push_back(findExtreme(c1,true, true )); 
+   r.push_back(findExtreme(c2,false,true ));
+   r.push_back(findExtreme(c2,true, true )); 
    r.push_back(findExtreme(c2,false,false ));
    r.push_back(findExtreme(c2,true, false ));
 
@@ -265,14 +265,17 @@ int main(int args, char** argss){
             printf("more then one contour found\n");
             continue;
          }
+         
          std::vector<cv::Point> points = contoursToPoints(contours);
 //         int x = std::get<0>(xy);
 //         int y = std::get<1>(xy);
-         
-        // printf("(%4d,%4d)  ",x,y);
-         continue;
-//         std::cout << std::endl;
+         std::cout << "(" <<
+             points[0]<<","<<points[1]<<","<<points[2]<<","<<points[3] << "  " << 
+             points[4]<<","<<points[5]<<","<<points[6]<<","<<points[7];          
 //         continue;
+         std::cout << ")";
+         std::cout << std::endl;
+         continue;
          // m a t h
          //cv::Mat rvec;
          //cv::Mat tvec;

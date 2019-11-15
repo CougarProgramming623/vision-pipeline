@@ -321,7 +321,7 @@ grid_points: [ 0., 0., 0., 1., 0., 0., 2., 0., 0., 3., 0., 0., 4., 0.,
     5., 4., 0., 6., 4., 0., 0., 5., 0., 1., 5., 0., 2., 5., 0., 3., 5.,
     0., 4., 5., 0., 5., 5., 0., 6., 5., 0., 0., 6., 0., 1., 6., 0., 2.,
     6., 0., 3., 6., 0., 4., 6., 0., 5., 6., 0., 6., 6., 0. ]
-
+# this is the old test code which doesn't appear to work
 image_points_real: [ 
     220, 241,
     211, 210,
@@ -336,3 +336,21 @@ grid_points_real: [
     0, 13.25, 74,
     0, 13.25, 74,
     0, 13.25, 74 ]  # vec<point3f>
+
+
+
+#image_points_real: !!opencv-matrix
+#    rows: 1 # each row is an image
+#    cols: 4 # 4 points per countour
+#    dt: "2f" # datatype is 2 floats
+#    data: [
+
+
+
+
+
+
+
+
+
+
