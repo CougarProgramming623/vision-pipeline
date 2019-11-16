@@ -6,6 +6,7 @@
 #include "opencv2/calib3d.hpp"
 #include <iostream>
 #include <stdio.h>
+#include "math.h"
 
 #define SET_WITH_CHECK(STATEMENT) \
     if(!STATEMENT){ \
@@ -56,28 +57,92 @@ cv::Point findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
     return extreme;
 }
 std::vector<cv::Point> contoursToPoints(std::vector<std::vector<cv::Point>> points){
-   std::vector<cv::Point> c1 = points[0]; // the first contour, the one that's on the left
-   std::vector<cv::Point> c2 = points[1]; // the second contour, the one that's on the right
-   
+   std::vector<cv::Point> cl = points[0]; // the first contour, the one that's on the left
+   std::vector<cv::Point> cr = points[1]; // the second contour, the one that's on the right
+   // let's assume that c1 is on the left
+
    std::vector<cv::Point> r; // the return vertex
    
 
-   r.push_back(findExtreme(c1,false,true ));
-   r.push_back(findExtreme(c1,true, true ));
-   r.push_back(findExtreme(c1,false,false));
-   r.push_back(findExtreme(c1,true, false));
+   r.push_back(findExtreme(cl,false,false)); // left top point
+
+   r.push_back(findExtreme(cr,false,false)); // right top point
+   r.push_back(findExtreme(cr,true ,true )); // right right point
+   r.push_back(findExtreme(cr,false, true));; // right bottom point
 
 
-   r.push_back(findExtreme(c2,false,true ));
-   r.push_back(findExtreme(c2,true, true )); 
-   r.push_back(findExtreme(c2,false,false ));
-   r.push_back(findExtreme(c2,true, false ));
+   r.push_back(findExtreme(cr,false,true )); // left bottom
+   r.push_back(findExtreme(cr,true, false)); // left left 
 
 
    return r;
 }
 
+#define TARGET_WIDTH 2.0f
+#define TARGET_HEIGHT 5.5f 
+#define TARGET_UPPER_OFFSET 4
+#define TARGET_ROTATION 14.5f
+#define PI 3.14159265
+
+cv::Point3f flip(cv::Point3f point){
+    return cv::Point3f(-1 * point.x,point.y,point.z);
+}
+void generateConstants(){
+    double cosine = cos(TARGET_ROTATION * PI / 180.0);
+    double sine   = sin(TARGET_ROTATION * PI / 180.0);
+    
+    //std::vector<cv::Point3f> rightTarget;
+    float manipulator[2];
+    manipulator[0] = TARGET_UPPER_OFFSET;
+    manipulator[1] = 0;
+    cv::Point3f right2 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 2
+    manipulator[0] += TARGET_WIDTH  * cosine;
+    manipulator[1] += TARGET_WIDTH  * sine;
+    cv::Point3f right3 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 3
+    manipulator[0] += TARGET_HEIGHT * sine;
+    manipulator[1] -= TARGET_HEIGHT * cosine;
+    cv::Point3f right4 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 4
+    manipulator[0] += TARGET_HEIGHT * sine;
+    manipulator[1] -= TARGET_HEIGHT * cosine;
+    cv::Point3f rightX = cv::Point3f(manipulator[0],manipulator[1], 0.0f); // point X
+    
+    std::cout << "right2 " << right2 << std::endl;
+    std::cout << "right3 " << right3 << std::endl;
+    std::cout << "right4 " << right4 << std::endl;
+    std::cout << "rightX " << rightX << std::endl;
+
+
+    
+    std::vector<cv::Point3f> fullTarget;
+    fullTarget.push_back(flip(right2)); // point 1
+    fullTarget.push_back(right2); //       point 2
+    fullTarget.push_back(right3); //       point 3
+    fullTarget.push_back(right4); //       point 4
+    fullTarget.push_back(flip(right4)); // point 5
+    fullTarget.push_back(flip(right3)); // point 6
+
+    int point = 1;
+    for(cv::Point3f x : fullTarget){
+        std::cout << "point " << point << "  :  " << x << std::endl;
+        point++;
+    }
+}
+
+
+
+
 int main(int args, char** argss){
+    std::cout << "" <<
+       "=========" << std::endl <<
+       " Vision Pipeline, 2019" << std::endl <<
+       
+       " Contributors: Carson Graham" << std::endl <<
+       "=========" << std::endl;
+    generateConstants();
+
+    std::cout << "premature return" << std::endl;
+    return 0;
+
     std::cout << "readnig from param.yaml" << std::endl;
 
     cv::FileStorage fs;
