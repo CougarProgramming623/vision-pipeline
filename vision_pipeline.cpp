@@ -96,11 +96,11 @@ void generateConstants(){
     manipulator[0] = TARGET_UPPER_OFFSET;
     manipulator[1] = 0;
     cv::Point3f right2 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 2
-    manipulator[0] += TARGET_WIDTH  * cosine;
-    manipulator[1] += TARGET_WIDTH  * sine;
+    manipulator[0] += TARGET_HEIGHT  * sine;
+    manipulator[1] -= TARGET_HEIGHT  * cosine;
     cv::Point3f right3 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 3
-    manipulator[0] += TARGET_HEIGHT * sine;
-    manipulator[1] -= TARGET_HEIGHT * cosine;
+    manipulator[0] -= TARGET_WIDTH * sine;
+    manipulator[1] -= TARGET_WIDTH * cosine;
     cv::Point3f right4 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 4
     manipulator[0] += TARGET_HEIGHT * sine;
     manipulator[1] -= TARGET_HEIGHT * cosine;
@@ -134,8 +134,7 @@ void generateConstants(){
 int main(int args, char** argss){
     std::cout << "" <<
        "=========" << std::endl <<
-       " Vision Pipeline, 2019" << std::endl <<
-       
+       " Vision Pipeline, 2019" << std::endl <<      
        " Contributors: Carson Graham" << std::endl <<
        "=========" << std::endl;
     generateConstants();
