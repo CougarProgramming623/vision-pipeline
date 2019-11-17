@@ -37,7 +37,7 @@ std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
    
     double angle2 = atan2(worldMat.at<double>(0,0), worldMat.at<double>(2,0));// again with the 0,2 possibility
     
-    std::vector<double> retur(5);
+    std::vector<double> retur;
     retur.push_back(x);
     retur.push_back(z);
     retur.push_back(distance);
@@ -127,7 +127,7 @@ std::vector<cv::Point3f> generateWorldConstant(){
 
 
     
-    std::vector<cv::Point3f> fullTarget(6);
+    std::vector<cv::Point3f> fullTarget;
     fullTarget.push_back(flip(right2)); // point 1
     fullTarget.push_back(right2); //       point 2
     fullTarget.push_back(right3); //       point 3
