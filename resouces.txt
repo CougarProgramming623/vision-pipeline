@@ -9,3 +9,5 @@ https://drive.google.com/file/d/1qWh2A96T0atcSV0YlAGl9XFpDSkKOydH/view
 https://github.com/FRC125/NU16/blob/boston/src/com/nutrons/stronghold/AngleCalculator.java#L31
 
 https://team900.org/labs/
+
+https://github.com/ligerbots/VisionServer/blob/master/server/rrtargetfinder2019.py
