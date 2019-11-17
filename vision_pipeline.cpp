@@ -87,7 +87,8 @@ std::vector<cv::Point> contoursToPoints(std::vector<std::vector<cv::Point>> poin
 cv::Point3f flip(cv::Point3f point){
     return cv::Point3f(-1 * point.x,point.y,point.z);
 }
-void generateConstants(){
+std::vector<cv::Point3f> generateWorldConstant(){
+    std::cout << "generating world constants...";
     double cosine = cos(TARGET_ROTATION * PI / 180.0);
     double sine   = sin(TARGET_ROTATION * PI / 180.0);
     
@@ -102,14 +103,14 @@ void generateConstants(){
     manipulator[0] -= TARGET_WIDTH * sine;
     manipulator[1] -= TARGET_WIDTH * cosine;
     cv::Point3f right4 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 4
-    manipulator[0] += TARGET_HEIGHT * sine;
-    manipulator[1] -= TARGET_HEIGHT * cosine;
-    cv::Point3f rightX = cv::Point3f(manipulator[0],manipulator[1], 0.0f); // point X
+    //manipulator[0] += TARGET_HEIGHT * sine;
+    //manipulator[1] -= TARGET_HEIGHT * cosine;
+    //cv::Point3f rightX = cv::Point3f(manipulator[0],manipulator[1], 0.0f); // point X
     
-    std::cout << "right2 " << right2 << std::endl;
-    std::cout << "right3 " << right3 << std::endl;
-    std::cout << "right4 " << right4 << std::endl;
-    std::cout << "rightX " << rightX << std::endl;
+    //std::cout << "right2 " << right2 << std::endl;
+    //std::cout << "right3 " << right3 << std::endl;
+    //std::cout << "right4 " << right4 << std::endl;
+    //std::cout << "rightX " << rightX << std::endl;
 
 
     
@@ -120,12 +121,14 @@ void generateConstants(){
     fullTarget.push_back(right4); //       point 4
     fullTarget.push_back(flip(right4)); // point 5
     fullTarget.push_back(flip(right3)); // point 6
-
+    std::cout << "done" << std::endl;
+    printf("Target points in world cords:\n"); 
     int point = 1;
     for(cv::Point3f x : fullTarget){
         std::cout << "point " << point << "  :  " << x << std::endl;
         point++;
     }
+    return fullTarget;
 }
 
 
@@ -137,7 +140,7 @@ int main(int args, char** argss){
        " Vision Pipeline, 2019" << std::endl <<      
        " Contributors: Carson Graham" << std::endl <<
        "=========" << std::endl;
-    generateConstants();
+    std::vector<cv::Point3f> worldTarget = generateWorldConstant();
 
     std::cout << "premature return" << std::endl;
     return 0;
