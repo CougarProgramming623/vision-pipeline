@@ -92,7 +92,7 @@ std::vector<cv::Point> contoursToPoints(std::vector<std::vector<cv::Point>> poin
 
 #define TARGET_WIDTH 2.0f
 #define TARGET_HEIGHT 5.5f 
-#define TARGET_UPPER_OFFSET 4
+#define TARGET_UPPER_OFFSET 4.0f
 #define TARGET_ROTATION 14.5f
 #define PI 3.14159265
 
@@ -100,40 +100,39 @@ cv::Point3f flip(cv::Point3f point){
        return cv::Point3f(-1 * point.x,point.y,point.z);
 }
 
+
+// generate world cords. This method has been rigorously tested by pasting polygons into desmos and wolfram alpha
+// to see if they look like the targets. I don't know 
 std::vector<cv::Point3f> generateWorldConstant(){
     std::cout << "generating world constants...";
     double cosine = cos(TARGET_ROTATION * PI / 180.0);
     double sine   = sin(TARGET_ROTATION * PI / 180.0);
     
     //std::vector<cv::Point3f> rightTarget;
-    float manipulator[2];
-    manipulator[0] = TARGET_UPPER_OFFSET;
-    manipulator[1] = 0;
-    cv::Point3f right2 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 2
-    manipulator[0] += TARGET_HEIGHT  * sine;
-    manipulator[1] -= TARGET_HEIGHT  * cosine;
-    cv::Point3f right3 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 3
-    manipulator[0] -= TARGET_WIDTH * sine;
-    manipulator[1] -= TARGET_WIDTH * cosine;
-    cv::Point3f right4 = cv::Point3f(manipulator[0], manipulator[1], 0.0f); // point 4
-    //manipulator[0] += TARGET_HEIGHT * sine;
-    //manipulator[1] -= TARGET_HEIGHT * cosine;
-    //cv::Point3f rightX = cv::Point3f(manipulator[0],manipulator[1], 0.0f); // point X
+    cv::Point3f right1 = cv::Point3f(TARGET_UPPER_OFFSET, 0.0f, 0.0f); // the top-most point. Point 2 of the target
     
-    //std::cout << "right2 " << right2 << std::endl;
-    //std::cout << "right3 " << right3 << std::endl;
-    //std::cout << "right4 " << right4 << std::endl;
-    //std::cout << "rightX " << rightX << std::endl;
+    cv::Point3f right2 = cv::Point3f(right1.x + sine   * TARGET_HEIGHT,//the right-most point. Point 3 of the target
+                                     right1.y - cosine * TARGET_HEIGHT, 0.0f);
+
+    cv::Point3f right3 = cv::Point3f(right2.x - cosine * TARGET_WIDTH,
+                                     right2.y - sine   * TARGET_WIDTH, 0.0f);
+
+    cv::Point3f right4 = cv::Point3f(right3.x - sine   * TARGET_HEIGHT,
+                                     right3.y + cosine * TARGET_HEIGHT, 0.0f);
+    
+    std::cout << "right1 " << right1 << std::endl;
+    std::cout << "right2 " << right2 << std::endl;
+    std::cout << "right3 " << right3 << std::endl;
+    std::cout << "right4 " << right4 << std::endl;
 
 
-    
     std::vector<cv::Point3f> fullTarget;
-    fullTarget.push_back(flip(right2)); // point 1
-    fullTarget.push_back(right2); //       point 2
-    fullTarget.push_back(right3); //       point 3
-    fullTarget.push_back(right4); //       point 4
-    fullTarget.push_back(flip(right4)); // point 5
-    fullTarget.push_back(flip(right3)); // point 6
+    fullTarget.push_back(flip(right1)); // point 1
+    fullTarget.push_back(right1); //       point 2
+    fullTarget.push_back(right2); //       point 3
+    fullTarget.push_back(right3); //       point 4
+    fullTarget.push_back(flip(right3)); // point 5
+    fullTarget.push_back(flip(right2)); // point 6
     std::cout << "done" << std::endl;
     printf("Target points in world cords:\n"); 
     int point = 1;
@@ -141,6 +140,13 @@ std::vector<cv::Point3f> generateWorldConstant(){
         std::cout << "point " << point << "  :  " << x << std::endl;
         point++;
     }
+    // for easy copy-paste into desmos to make sure it's decent
+    
+    std::cout << "polygon(";
+    for(cv::Point3f x : fullTarget) {
+        printf("(%f,%f),",x.x,x.y); // remember to remove the last ,
+    }
+    std::cout << ")" << std::endl;
     return fullTarget;
 }
 
