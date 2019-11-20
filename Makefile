@@ -1,3 +1,7 @@
+# when the following line is uncommented, debug output will be printed.
+# DEBUG=-D ENABLE_DEBUG_OUTPUT
+
+
 # add `-Wno-unused-variable` to make errors about unused variables go away
 CFLAGS=-Werror -Wall -Wno-psabi -g
 
@@ -20,7 +24,7 @@ run: vision_pipeline
 	OPENCV_VIDEOIO_DEBUG=1 OPENCV_LOG_LEVEL=debug ./vision_pipeline
 
 %.o: %.cpp
-	$(GXX) -c -o $@ $<
+	$(GXX) $(DEBUG) -c -o $@ $<
 
 vision_pipeline: $(OBJS)
 	$(GXX) -o $@ $(OBJS) $(LIBS) 

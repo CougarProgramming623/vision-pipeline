@@ -161,9 +161,9 @@ int main(int args, char** argss){
        "=========" << std::endl;
     std::vector<cv::Point3f> worldTarget = generateWorldConstant();
 
-
-    std::cout << "reading from param.yaml" << std::endl;
-
+    #ifdef ENABLE_DEBUG_OUTPUT
+        std::cout << "reading from param.yaml" << std::endl;
+    #endif
     cv::FileStorage fs;
     fs.open("param.yaml",cv::FileStorage::READ);
     cv::Mat cameraMatrix = fs["camera_matrix"].mat();// 6: CV_64F
