@@ -1,13 +1,14 @@
-CFLAGS=-Werror -Wall -Wno-psabi -g# -Wno-unused-variable
+# add `-Wno-unused-variable` to make errors about unused variables go away
+CFLAGS=-Werror -Wall -Wno-psabi -g
+
+# these are all the object files that need to be generated before the binary can be generated
+# 
 OBJS=vision_pipeline.o
 
 LIBS=-lcurl -lopencv_calib3d -lopencv_imgcodecs -lopencv_core -l opencv_imgproc -lopencv_highgui  -lopencv_videoio -L ~/ntcore/build/libs/ntcore/shared -L ~/wpiutil/build/libs/wpiutil/shared -L /usr/local/lib
 
 INC=-I ~/ntcore/src/main/native/include -I ~/wpiutil/src/main/native/include -I /usr/include/llvm-3.9 -I /usr/include/opencv4 -I /usr/local/include/opencv4
 
-# LIBS=-lcurl -lopencv_imgcodecs -lopencv_core -l opencv_imgproc -lopencv_highgui -lopencv_videoio -L /usr/local/lib
-
-# INC=-I /usr/include/llvm-3.9 -I /usr/include/opencv4
 
 GXX=g++ $(CFLAGS) $(INC)
 
