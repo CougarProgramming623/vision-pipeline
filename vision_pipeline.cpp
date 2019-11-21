@@ -32,7 +32,8 @@ std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
     double angle1 = atan2(x,z);
     cv::Mat rotMatrix;
     cv::Rodrigues(rvec,rotMatrix);
-    std::cout << rotMatrix.type() << std::endl; // TODO make sure this mat is used with the right types
+    // TYPE: CV_64F
+    // std::cout << rotMatrix.type() << std::endl; // TODO make sure this mat is used with the right types
     cv::Mat worldMat = rotMatrix.inv() * (-tvec);
    
     double angle2 = atan2(worldMat.at<double>(0,0), worldMat.at<double>(2,0));// again with the 0,2 possibility
@@ -47,7 +48,7 @@ std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
 }
 
 // calling this with points.size < 1 will make me sad
-cv::Point findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
+cv::Point2f findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
     cv::Point extreme = points[0];
     for(long unsigned int i = 1; i < points.size(); i++){
         cv::Point p = points[i];
@@ -66,25 +67,25 @@ cv::Point findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
             extreme = p;
         }
     }
-    return extreme;
+    return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
 }
-std::vector<cv::Point> contoursToPoints(std::vector<std::vector<cv::Point>> points){
+std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> points){
    std::vector<cv::Point> cl = points[0]; // the first contour, the one that's on the left
    std::vector<cv::Point> cr = points[1]; // the second contour, the one that's on the right
    // let's assume that c1 is on the left
 
-   std::vector<cv::Point> r; // the return vertex
+   std::vector<cv::Point2f> r; // the return vertex
    
 
-   r.push_back(findExtreme(cl,false,false)); // left top point
+   r.push_back(findExtreme(cl,false,false)); // point 1
 
-   r.push_back(findExtreme(cr,false,false)); // right top point
-   r.push_back(findExtreme(cr,true ,true )); // right right point
-   r.push_back(findExtreme(cr,false, true));; // right bottom point
+   r.push_back(findExtreme(cr,false,false)); // point 2
+   r.push_back(findExtreme(cr,true ,true )); // point 3
+   r.push_back(findExtreme(cr,false, true));; //point 4
 
 
-   r.push_back(findExtreme(cr,false,true )); // left bottom
-   r.push_back(findExtreme(cr,true, false)); // left left 
+   r.push_back(findExtreme(cr,false,true )); // point 5
+   r.push_back(findExtreme(cr,true, false)); // point 6 
 
 
    return r;
@@ -272,25 +273,33 @@ int main(int args, char** argss){
              printf("more then one contour found\n");
             continue;
          }
+         bool printPoints = true;
          
-         std::vector<cv::Point> points = contoursToPoints(contours);
-         std::cout << "(" <<
-             points[0]<<","<<points[1]<<","<<points[2]<<","<<points[3] << "  " << 
-             points[4]<<","<<points[5]<<","<<points[6]<<","<<points[7];          
-//         continue;
-         std::cout << ")";
-         std::cout << std::endl;
-         continue;
+         std::vector<cv::Point2f> points = contoursToPoints(contours);
+         if(printPoints){
+         std::cout << "(" << points.size() << " " << 
+               points[0]<<","<<points[1]<<","<<points[2]<<","<<points[3] << "  " << 
+               points[4]<<","<<points[5]<<","<<points[6]<<","<<points[7];          
+//           continue;
+           std::cout << ")";
+           std::cout << std::endl;          
+           continue; 
+         }
+
+         //cv::Mat opoints = cv::InputArray(worldTarget).getMat();
+         //cv::Mat ipoints = cv::InputArray(points).getMat();
+         //std::cout << "types: " << opoints.type() << " " << ipoints.type() << std::endl;
+         // continue;
          // m a t h
          cv::Mat rvec;
          cv::Mat tvec;
-         bool solvePnPSucc = cv::solvePnP(worldTarget,points,cameraMatrix,distCoeff,rvec,tvec);
-         std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
-         std::cout << "tvec: " << tvec << std::endl;
-         std::cout << "rvec: " << rvec << std::endl;
+         bool solvePnPSucc = cv::solvePnP(cv::InputArray(worldTarget),cv::InputArray(points),cameraMatrix,distCoeff,rvec,tvec);
+         //std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
+         //std::cout << "tvec: " << tvec << std::endl;
+         //std::cout << "rvec: " << rvec << std::endl;
          // TODO make sure that the assumptions made about the types of these mats is correct 
-         std::cout << "tvec type: " << tvec.type() << std::endl;
-         std::cout << "rvec type: " << rvec.type() << std::endl;
+         //std::cout << "tvec type: " << tvec.type() << std::endl; 6 CV_64F
+         //std::cout << "rvec type: " << rvec.type() << std::endl; 6 CV_64F
          std::vector<double> pos = findPos(rvec, tvec);
          double x        = pos[0];
          double z        = pos[1];
@@ -298,7 +307,7 @@ int main(int args, char** argss){
          double angle1   = pos[3]; 
          double angle2   = pos[4];
 
-         printf("x:%10f z:%10f distance: %10f angle1: %10f angle2: %10f",x,z,distance,angle1,angle2);
+         printf("x:%10f     z:%10f      distance:      %10f angle1:      %10f angle2:      %10f",x,z,distance,angle1,angle2);
          std::cout << std::endl;
     }
     // the camera will be deinitialized automatically in VideoCapture destructor

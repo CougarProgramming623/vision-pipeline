@@ -3,7 +3,7 @@
 
 
 # add `-Wno-unused-variable` to make errors about unused variables go away
-CFLAGS=-Werror -Wall -Wno-psabi -g
+CFLAGS=-Werror -Wall -Wno-psabi -g -Wno-unused-variable
 
 # these are all the object files that need to be generated before the binary can be generated
 # 
