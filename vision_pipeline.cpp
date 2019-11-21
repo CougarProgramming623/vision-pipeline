@@ -50,25 +50,27 @@ std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
 // calling this with points.size < 1 will make me sad
 cv::Point2f findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
     cv::Point extreme = points[0];
+    if(isX){ 
+        for(long unsigned int i = 1; i < points.size(); i++){
+            cv::Point p = points[i];
+            if(isMax && extreme.x < p.x) extreme = p;
+            else if(!isMax && extreme.x > p.x) extreme = p;
+        }
+        return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
+    }
+    // if it's y
     for(long unsigned int i = 1; i < points.size(); i++){
         cv::Point p = points[i];
-        int current = 0;
-        int newVal  = 0;
-        if(isX) {
-            current = extreme.x;
-            newVal = p.x;
-        } else {
-            current = extreme.y;
-            newVal = p.y;
-        }
-        if(isMax && newVal < current) { // the origin is at the top left corrner, lower values are "higher"
-            extreme = p;
-        } else if(!isMax && newVal > current){ // higher values are lower, the biggest value is the lowest point (we hope)
-            extreme = p;
-        }
+        if(isMax && extreme.y < p.y) extreme = p;
+        else if(!isMax && extreme.y > p.y) extreme = p;
+     //   return extreme;
+     //   return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
     }
-    return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
+   return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
+
 }
+
+
 std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> points){
    std::vector<cv::Point> cl = points[0]; // the first contour, the one that's on the left
    std::vector<cv::Point> cr = points[1]; // the second contour, the one that's on the right
@@ -84,8 +86,8 @@ std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> po
    r.push_back(findExtreme(cr,false, true));; //point 4
 
 
-   r.push_back(findExtreme(cr,false,true )); // point 5
-   r.push_back(findExtreme(cr,true, false)); // point 6 
+   r.push_back(findExtreme(cl,false,true )); // point 5
+   r.push_back(findExtreme(cl,true, false)); // point 6 
 
 
    return r;
@@ -273,14 +275,13 @@ int main(int args, char** argss){
              printf("more then one contour found\n");
             continue;
          }
-         bool printPoints = true;
+         bool printPoints = false;
          
          std::vector<cv::Point2f> points = contoursToPoints(contours);
          if(printPoints){
          std::cout << "(" << points.size() << " " << 
-               points[0]<<","<<points[1]<<","<<points[2]<<","<<points[3] << "  " << 
-               points[4]<<","<<points[5]<<","<<points[6]<<","<<points[7];          
-//           continue;
+               points[0]<<","<<points[1]<<","<<points[2]<<","<<points[3] << 
+               points[4]<<","<<points[5];
            std::cout << ")";
            std::cout << std::endl;          
            continue; 
@@ -304,8 +305,8 @@ int main(int args, char** argss){
          double x        = pos[0];
          double z        = pos[1];
          double distance = pos[2];
-         double angle1   = pos[3]; 
-         double angle2   = pos[4];
+         double angle1   = pos[3] * 180.0 / M_PI; 
+         double angle2   = pos[4] * 180.0 / M_PI;
 
          printf("x:%10f     z:%10f      distance:      %10f angle1:      %10f angle2:      %10f",x,z,distance,angle1,angle2);
          std::cout << std::endl;
