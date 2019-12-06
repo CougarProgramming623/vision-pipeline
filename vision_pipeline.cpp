@@ -294,18 +294,18 @@ int main(int args, char** argss){
 
          //cv::Mat opoints = cv::InputArray(worldTarget).getMat();
          //cv::Mat ipoints = cv::InputArray(points).getMat();
-         //std::cout << "types: " << opoints.type() << " " << ipoints.type() << std::endl;
+         std::cout << "world target " << worldTarget << "  points  "  << points << std::endl;
          // continue;
          // m a t h
          cv::Mat rvec;
          cv::Mat tvec;
          bool solvePnPSucc = cv::solvePnP(cv::InputArray(worldTarget),cv::InputArray(points),cameraMatrix,distCoeff,rvec,tvec);
-         //std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
-         //std::cout << "tvec: " << tvec << std::endl;
-         //std::cout << "rvec: " << rvec << std::endl;
+         std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
+         std::cout << "tvec: " << tvec << std::endl;
+         std::cout << "rvec: " << rvec << std::endl;
          // TODO make sure that the assumptions made about the types of these mats is correct 
-         //std::cout << "tvec type: " << tvec.type() << std::endl; 6 CV_64F
-         //std::cout << "rvec type: " << rvec.type() << std::endl; 6 CV_64F
+         std::cout << "tvec type: " << tvec.type() << std::endl; //6 CV_64F
+         std::cout << "rvec type: " << rvec.type() << std::endl; //6 CV_64F
          std::vector<double> pos = findPos(rvec, tvec);
          double x        = pos[0];
          double z        = pos[1];
