@@ -8,10 +8,13 @@
 #include <stdio.h>
 #include "math.h"
 
+// when set to 1, only 4 points will be inputted
+#define MODE_FOUR_POINTS 1
+
 #define SET_WITH_CHECK(STATEMENT) \
-    if(!STATEMENT){ \
-      std::cerr << #STATEMENT << " is not supported by the video backend" << std::endl; \
-    };  
+		if(!STATEMENT){ \
+				std::cerr << #STATEMENT << " is not supported by the video backend" << std::endl; \
+		};  
 /*
  *
  * Things to improve:
@@ -26,71 +29,71 @@ void filterContours(std::vector<std::vector<cv::Point> > &, double , double , do
 // TODO: test
 // returns: x, z, distance, angle1, angle2
 std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
-    double x = tvec.at<double>(0,0); 
-    double z = tvec.at<double>(2,0); // there's a chance this should be 0,2
-    double distance = sqrt(pow(x,2) + pow(z,2));
-    double angle1 = atan2(x,z);
-    cv::Mat rotMatrix;
-    cv::Rodrigues(rvec,rotMatrix);
-    // TYPE: CV_64F
-    // std::cout << rotMatrix.type() << std::endl; // TODO make sure this mat is used with the right types
-    cv::Mat worldMat = rotMatrix.inv() * (-tvec);
-   
-    double angle2 = atan2(worldMat.at<double>(0,0), worldMat.at<double>(2,0));// again with the 0,2 possibility
-    
-    std::vector<double> retur;
-    retur.push_back(x);
-    retur.push_back(z);
-    retur.push_back(distance);
-    retur.push_back(angle1);
-    retur.push_back(angle2);
-    return retur;
+		double x = tvec.at<double>(0,0); 
+		double z = tvec.at<double>(2,0); // there's a chance this should be 0,2
+		double distance = sqrt(pow(x,2) + pow(z,2));
+		double angle1 = atan2(x,z);
+		cv::Mat rotMatrix;
+		cv::Rodrigues(rvec,rotMatrix);
+		// TYPE: CV_64F
+		// std::cout << rotMatrix.type() << std::endl; // TODO make sure this mat is used with the right types
+		cv::Mat worldMat = rotMatrix.inv() * (-tvec);
+
+		double angle2 = atan2(worldMat.at<double>(0,0), worldMat.at<double>(2,0));// again with the 0,2 possibility
+
+		std::vector<double> retur;
+		retur.push_back(x);
+		retur.push_back(z);
+		retur.push_back(distance);
+		retur.push_back(angle1);
+		retur.push_back(angle2);
+		return retur;
 }
 
 // calling this with points.size < 1 will make me sad
 cv::Point2f findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
-    cv::Point extreme = points[0];
-    if(isX){ 
-        for(long unsigned int i = 1; i < points.size(); i++){
-            cv::Point p = points[i];
-            if(isMax && extreme.x < p.x) extreme = p;
-            else if(!isMax && extreme.x > p.x) extreme = p;
-        }
-        return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
-    }
-    // if it's y
-    for(long unsigned int i = 1; i < points.size(); i++){
-        cv::Point p = points[i];
-        if(isMax && extreme.y < p.y) extreme = p;
-        else if(!isMax && extreme.y > p.y) extreme = p;
-     //   return extreme;
-     //   return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
-    }
-   return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
+		cv::Point extreme = points[0];
+		if(isX){ 
+				for(long unsigned int i = 1; i < points.size(); i++){
+						cv::Point p = points[i];
+						if(isMax && extreme.x < p.x) extreme = p;
+						else if(!isMax && extreme.x > p.x) extreme = p;
+				}
+				return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
+		}
+		// if it's y
+		for(long unsigned int i = 1; i < points.size(); i++){
+				cv::Point p = points[i];
+				if(isMax && extreme.y < p.y) extreme = p;
+				else if(!isMax && extreme.y > p.y) extreme = p;
+				//   return extreme;
+				//   return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
+		}
+		return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
 
 }
 
 
 std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> points){
-   std::vector<cv::Point> cl = points[0]; // the first contour, the one that's on the left
-   std::vector<cv::Point> cr = points[1]; // the second contour, the one that's on the right
-   // let's assume that c1 is on the left
+    std::vector<cv::Point> cl = points[0]; // the first contour, the one that's on the left
+    std::vector<cv::Point> cr = points[1]; // the second contour, the one that's on the right
+    // let's assume that c1 is on the left
 
-   std::vector<cv::Point2f> r; // the return vertex
-   
-
-   r.push_back(findExtreme(cl,false,false)); // point 1
-
-   r.push_back(findExtreme(cr,false,false)); // point 2
-   r.push_back(findExtreme(cr,true ,true )); // point 3
-   r.push_back(findExtreme(cr,false, true));; //point 4
+    std::vector<cv::Point2f> r; // the return vertex
 
 
-   r.push_back(findExtreme(cl,false,true )); // point 5
-   r.push_back(findExtreme(cl,true, false)); // point 6 
+    r.push_back(findExtreme(cl,false,false)); // point 1
 
+    r.push_back(findExtreme(cr,false,false)); // point 2
+    r.push_back(findExtreme(cr,true ,true )); // point 3
+    #if !MODE_FOUR_POINTS
+    r.push_back(findExtreme(cr,false, true));; //point 4
 
-   return r;
+    r.push_back(findExtreme(cl,false,true )); // point 5
+    #endif
+    r.push_back(findExtreme(cl,true, false)); // point 6
+
+    return r;
 }
 
 #define TARGET_WIDTH 2.0f
@@ -133,8 +136,10 @@ std::vector<cv::Point3f> generateWorldConstant(){
     fullTarget.push_back(flip(right1)); // point 1
     fullTarget.push_back(right1); //       point 2
     fullTarget.push_back(right2); //       point 3
+    #if !MODE_FOUR_POINTS
     fullTarget.push_back(right3); //       point 4
     fullTarget.push_back(flip(right3)); // point 5
+    #endif
     fullTarget.push_back(flip(right2)); // point 6
     std::cout << "done" << std::endl;
     printf("Target points in world cords:\n"); 
@@ -289,18 +294,18 @@ int main(int args, char** argss){
 
          //cv::Mat opoints = cv::InputArray(worldTarget).getMat();
          //cv::Mat ipoints = cv::InputArray(points).getMat();
-         //std::cout << "types: " << opoints.type() << " " << ipoints.type() << std::endl;
+         std::cout << "world target " << worldTarget << "  points  "  << points << std::endl;
          // continue;
          // m a t h
          cv::Mat rvec;
          cv::Mat tvec;
          bool solvePnPSucc = cv::solvePnP(cv::InputArray(worldTarget),cv::InputArray(points),cameraMatrix,distCoeff,rvec,tvec);
-         //std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
-         //std::cout << "tvec: " << tvec << std::endl;
-         //std::cout << "rvec: " << rvec << std::endl;
+         std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
+         std::cout << "tvec: " << tvec << std::endl;
+         std::cout << "rvec: " << rvec << std::endl;
          // TODO make sure that the assumptions made about the types of these mats is correct 
-         //std::cout << "tvec type: " << tvec.type() << std::endl; 6 CV_64F
-         //std::cout << "rvec type: " << rvec.type() << std::endl; 6 CV_64F
+         std::cout << "tvec type: " << tvec.type() << std::endl; //6 CV_64F
+         std::cout << "rvec type: " << rvec.type() << std::endl; //6 CV_64F
          std::vector<double> pos = findPos(rvec, tvec);
          double x        = pos[0];
          double z        = pos[1];
