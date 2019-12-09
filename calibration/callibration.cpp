@@ -451,9 +451,13 @@ int main( int argc, char** argv )
         else
             capture.open(samples::findFileOrKeep(inputFilename));
     }
-    else
+    else {
         capture.open(cameraId);
-
+	// EDITS
+	capture.set(cv::CAP_PROP_FRAME_WIDTH,288);
+	capture.set(cv::CAP_PROP_FRAME_WIDTH,352);
+	// DONE EDITS
+    }
     if( !capture.isOpened() && imageList.empty() )
         return fprintf( stderr, "Could not initialize video (%d) capture\n",cameraId ), -2;
 
