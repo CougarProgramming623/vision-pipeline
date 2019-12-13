@@ -36,7 +36,7 @@ std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
 		cv::Mat rotMatrix;
 		cv::Rodrigues(rvec,rotMatrix);
 		// TYPE: CV_64F
-		// std::cout << rotMatrix.type() << std::endl; // TODO make sure this mat is used with the right types
+		
 		cv::Mat worldMat = rotMatrix.inv() * (-tvec);
 
 		double angle2 = atan2(worldMat.at<double>(0,0), worldMat.at<double>(2,0));// again with the 0,2 possibility
@@ -221,7 +221,7 @@ int main(int args, char** argss){
             //break;
             continue;
         }
-        std::cout << "size: " << frame.size() << std::endl;
+        //std::cout << "size: " << frame.size() << std::endl;
    //       printf("channels: %d\ntype: %d\n",frame.channels(),frame.type());
         ;
         // std::cout << "cols:" << frame.cols << " rows: " << frame.rows << std::endl;
@@ -295,18 +295,18 @@ int main(int args, char** argss){
 
          //cv::Mat opoints = cv::InputArray(worldTarget).getMat();
          //cv::Mat ipoints = cv::InputArray(points).getMat();
-         std::cout << "world target " << worldTarget << "  points  "  << points << std::endl;
+         //std::cout << "world target " << worldTarget << "  points  "  << points << std::endl;
          // continue;
          // m a t h
          cv::Mat rvec;
          cv::Mat tvec;
          bool solvePnPSucc = cv::solvePnP(cv::InputArray(worldTarget),cv::InputArray(points),cameraMatrix,distCoeff,rvec,tvec);
-         std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
-         std::cout << "tvec: " << tvec << std::endl;
-         std::cout << "rvec: " << rvec << std::endl;
+         //std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
+        // std::cout << "tvec: " << tvec << std::endl;
+         //std::cout << "rvec: " << rvec << std::endl;
          // TODO make sure that the assumptions made about the types of these mats is correct 
-         std::cout << "tvec type: " << tvec.type() << std::endl; //6 CV_64F
-         std::cout << "rvec type: " << rvec.type() << std::endl; //6 CV_64F
+         //std::cout << "tvec type: " << tvec.type() << std::endl; //6 CV_64F
+         //std::cout << "rvec type: " << rvec.type() << std::endl; //6 CV_64F
          std::vector<double> pos = findPos(rvec, tvec);
          double x        = pos[0];
          double z        = pos[1];
