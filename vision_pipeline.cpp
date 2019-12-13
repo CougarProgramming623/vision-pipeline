@@ -192,8 +192,8 @@ int main(int args, char** argss){
     std::cout << "api in use: " << apiID << std::endl;
     // set up the camera
     std::cout << "setting up camera" << std::endl;
-    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_WIDTH,288));
-    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_HEIGHT,352));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_HEIGHT,288));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_FRAME_WIDTH,352));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_FPS,20));
    // cap.set(cv::CAP_PROP_CONVERT_RGB,0);
     SET_WITH_CHECK(cap.set(cv::VIDEOWRITER_PROP_QUALITY,10));
@@ -202,7 +202,7 @@ int main(int args, char** argss){
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_AUTO_EXPOSURE,1)); 
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_EXPOSURE,9));
     std::cout << "camera setup done" << std::endl;
-    
+
     // check if we succeeded
     if (!cap.isOpened()) {
         std::cerr << "ERROR! Unable to open camera\n";
@@ -221,7 +221,8 @@ int main(int args, char** argss){
             //break;
             continue;
         }
- //       printf("channels: %d\ntype: %d\n",frame.channels(),frame.type());
+        std::cout << "size: " << frame.size() << std::endl;
+   //       printf("channels: %d\ntype: %d\n",frame.channels(),frame.type());
         ;
         // std::cout << "cols:" << frame.cols << " rows: " << frame.rows << std::endl;
          cv::Mat img_hsv;
