@@ -1,6 +1,6 @@
 CFLAGS=-Werror -Wall -Wno-psabi -g
 OBJS=callibration.o
-LIBS=-lcurl -lopencv_calib3d -lopencv_features2d -lopencv_videoio -lopencv_imgcodecs -lopencv_core -l opencv_imgproc -lopencv_highgui -L /usr/local/lib
+LIBS=-lopencv_calib3d -lopencv_features2d -lopencv_videoio -lopencv_imgcodecs -lopencv_core -l opencv_imgproc -lopencv_highgui -L /usr/local/lib
 
 INC=-I /usr/local/include/opencv4 -I /usr/include/opencv4
 

@@ -11,6 +11,7 @@
 #include <string.h>
 #include <time.h>
 #include <iostream>
+#include <unistd.h>
 
 using namespace cv;
 using namespace std;
@@ -451,9 +452,14 @@ int main( int argc, char** argv )
         else
             capture.open(samples::findFileOrKeep(inputFilename));
     }
-    else
-        capture.open(cameraId);
-
+    else {
+        capture.open(cameraId + cv::CAP_V4L2);
+	sleep(3);
+	// EDITS
+	fprintf(stderr, "%d\n", capture.set(cv::CAP_PROP_FRAME_WIDTH,352));
+	fprintf(stderr, "%d\n", capture.set(cv::CAP_PROP_FRAME_HEIGHT,288));
+	// DONE EDITS
+    }
     if( !capture.isOpened() && imageList.empty() )
         return fprintf( stderr, "Could not initialize video (%d) capture\n",cameraId ), -2;
 
@@ -490,6 +496,7 @@ int main( int argc, char** argv )
         }
 
         imageSize = view.size();
+	std::cout << "size: " << imageSize << std::endl;
 
         if( flipVertical )
             flip( view, view, 0 );
