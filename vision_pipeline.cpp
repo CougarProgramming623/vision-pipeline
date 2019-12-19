@@ -73,6 +73,10 @@ cv::Point2f findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
 
 }
 
+cv::Point flipY(cv::Point point, bool flip) {
+    if(flip) return cv::Point(point.x, -1 * point.y);
+    return point;
+}
 
 std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> points){
     std::vector<cv::Point> cl = points[0]; // the first contour, the one that's on the left
@@ -81,18 +85,20 @@ std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> po
 
     std::vector<cv::Point2f> r; // the return vertex
 
+    bool flip = true;
 
-    r.push_back(findExtreme(cr,false,false)); // point 1
+    std::cout << "cl " << cl << std::endl << "cr " << cr << std::endl;
+    r.push_back(flipY(findExtreme(cl,false,false),flip)); // point 1
 
-    r.push_back(findExtreme(cl,false,false)); // point 2
-    r.push_back(findExtreme(cl,true ,true )); // point 3
+    r.push_back(flipY(findExtreme(cr,false,false),flip)); // point 2
+    r.push_back(flipY(findExtreme(cr,true ,true ),flip)); // point 3
     #if !MODE_FOUR_POINTS
-    r.push_back(findExtreme(cl,false, true));; //point 4
+    r.push_back(flipY(findExtreme(cr,false, true),flip)); //point 4
 
-    r.push_back(findExtreme(cr,false,true )); // point 5
+    r.push_back(flipY(findExtreme(cl,false,true ),flip)); // point 5
     #endif
-    r.push_back(findExtreme(cr,true, false)); // point 6
-    //std::cout << "R: " << r << std::endl;
+    r.push_back(flipY(findExtreme(cl,true, false),flip)); // point 6
+    std::cout << "R: " << r << std::endl;
     return r;
 }
 
