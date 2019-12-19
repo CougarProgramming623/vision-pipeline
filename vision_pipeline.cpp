@@ -82,23 +82,23 @@ std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> po
     std::vector<cv::Point2f> r; // the return vertex
 
 
-    r.push_back(findExtreme(cl,false,false)); // point 1
+    r.push_back(findExtreme(cr,false,false)); // point 1
 
-    r.push_back(findExtreme(cr,false,false)); // point 2
-    r.push_back(findExtreme(cr,true ,true )); // point 3
+    r.push_back(findExtreme(cl,false,false)); // point 2
+    r.push_back(findExtreme(cl,true ,true )); // point 3
     #if !MODE_FOUR_POINTS
-    r.push_back(findExtreme(cr,false, true));; //point 4
+    r.push_back(findExtreme(cl,false, true));; //point 4
 
-    r.push_back(findExtreme(cl,false,true )); // point 5
+    r.push_back(findExtreme(cr,false,true )); // point 5
     #endif
-    r.push_back(findExtreme(cl,true, false)); // point 6
-
+    r.push_back(findExtreme(cr,true, false)); // point 6
+    //std::cout << "R: " << r << std::endl;
     return r;
 }
 
 #define TARGET_WIDTH 2.0f
 #define TARGET_HEIGHT 5.5f 
-#define TARGET_UPPER_OFFSET 4.0f
+#define TARGET_UPPER_OFFSET 6.0f
 #define TARGET_ROTATION 14.5f
 #define PI 3.14159265
 
@@ -131,9 +131,9 @@ std::vector<cv::Point3f> generateWorldConstant(){
     std::cout << "right3 " << right3 << std::endl;
     std::cout << "right4 " << right4 << std::endl;
 
-
+ 
     std::vector<cv::Point3f> fullTarget;
-    fullTarget.push_back(flip(right1)); // point 1
+/*    fullTarget.push_back(flip(right1)); // point 1
     fullTarget.push_back(right1); //       point 2
     fullTarget.push_back(right2); //       point 3
     #if !MODE_FOUR_POINTS
@@ -141,7 +141,12 @@ std::vector<cv::Point3f> generateWorldConstant(){
     fullTarget.push_back(flip(right3)); // point 5
     #endif
     fullTarget.push_back(flip(right2)); // point 6
-    std::cout << "done" << std::endl;
+  */  std::cout << "done" << std::endl;
+    fullTarget.push_back(cv::Point3f(-6, 0, 0));
+    fullTarget.push_back(cv::Point3f( 6, 0, 0));
+    fullTarget.push_back(cv::Point3f(7.377, -5.83, 0));
+    fullTarget.push_back(cv::Point3f(-7.377, -5.83, 0));
+
     printf("Target points in world cords:\n"); 
     int point = 1;
     for(cv::Point3f x : fullTarget){
