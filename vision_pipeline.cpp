@@ -7,6 +7,9 @@
 #include <iostream>
 #include <stdio.h>
 #include "math.h"
+#include "networktables/NetworkTableInstance.h"
+#include "ntcore_cpp.h"
+//#include <Twine.h>
 
 // when set to 1, only 4 points will be inputted
 #define MODE_FOUR_POINTS 1
@@ -85,9 +88,9 @@ std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> po
 
     std::vector<cv::Point2f> r; // the return vertex
 
-    bool flip = true;
+    bool flip = false;
 
-    std::cout << "cl " << cl << std::endl << "cr " << cr << std::endl;
+    //std::cout << "cl " << cl << std::endl << "cr " << cr << std::endl;
     r.push_back(flipY(findExtreme(cl,false,false),flip)); // point 1
 
     r.push_back(flipY(findExtreme(cr,false,false),flip)); // point 2
@@ -98,7 +101,7 @@ std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> po
     r.push_back(flipY(findExtreme(cl,false,true ),flip)); // point 5
     #endif
     r.push_back(flipY(findExtreme(cl,true, false),flip)); // point 6
-    std::cout << "R: " << r << std::endl;
+    //std::cout << "R: " << r << std::endl;
     return r;
 }
 
@@ -170,6 +173,23 @@ std::vector<cv::Point3f> generateWorldConstant(){
 }
 
 
+//std::shared_ptr<nt::NetworkTable> 
+/*void
+startNetworkTable() {
+    nt::NetworkTableInstance init = nt::NetworkTableInstance::GetDefault();
+    init.StartClientTeam(623);
+    //init.GetTable("vision");
+    return ;
+}*/
+
+
+std::shared_ptr<nt::NetworkTable>
+start_networktables(void)
+{
+	auto inst = nt::NetworkTableInstance::GetDefault();
+	inst.StartClient("roborio-623-frc.local");
+	return inst.GetTable("vision");
+}
 
 
 int main(int args, char** argss){
@@ -179,6 +199,10 @@ int main(int args, char** argss){
        " Contributors: Carson Graham" << std::endl <<
        "=========" << std::endl;
     std::vector<cv::Point3f> worldTarget = generateWorldConstant();
+
+    std::cout << "Starting Network Tables\n"; 
+    //std::shared_ptr<nt::NetworkTable> table = startNetworkTable();
+    
 
     #ifdef ENABLE_DEBUG_OUTPUT
         std::cout << "reading from param.yaml" << std::endl;
@@ -211,7 +235,8 @@ int main(int args, char** argss){
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_CONTRAST,5));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_SHARPNESS,50));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_AUTO_EXPOSURE,1)); 
-    SET_WITH_CHECK(cap.set(cv::CAP_PROP_EXPOSURE,9));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_EXPOSURE,1));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_BRIGHTNESS, 30));
     std::cout << "camera setup done" << std::endl;
 
     // check if we succeeded
@@ -242,7 +267,7 @@ int main(int args, char** argss){
 
          double hue[] = {33.99280575539568, 93.99317406143345}; // these are the hue values it must fall between
 	     double sat[] = {100.89928057553958, 255.0}; // sateration is just "amount". Means we need a lot of green
-         double val[] = {169.69424460431654, 255.0};
+         double val[] = {85.69424460431654, 255.0};
          cv::Mat img_filtered;
          cv::inRange(img_hsv,cv::Scalar(hue[0],sat[0],val[0]),cv::Scalar(hue[1],sat[1],val[1]),img_filtered);
          img_hsv.release();
@@ -288,7 +313,7 @@ int main(int args, char** argss){
            continue; 
          }
 
-         if( contours.size() != 2){
+         if( contours.size() > 2){
              printf("more then one contour found\n");
             continue;
          }
@@ -326,6 +351,7 @@ int main(int args, char** argss){
          double angle2   = pos[4] * 180.0 / M_PI;
 
          printf("x:%10f     z:%10f      distance:      %10f angle1:      %10f angle2:      %10f",x,z,distance,angle1,angle2);
+         //return 0;
          std::cout << std::endl;
     }
     // the camera will be deinitialized automatically in VideoCapture destructor
