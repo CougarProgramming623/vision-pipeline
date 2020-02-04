@@ -8,7 +8,8 @@
 #include <stdio.h>
 #include "math.h"
 #include "networktables/NetworkTableInstance.h"
-#include "ntcore_cpp.h"
+#include "networktables/NetworkTable.h"
+//#include "ntcore_cpp.h"
 //#include <Twine.h>
 
 // when set to 1, only 4 points will be inputted
@@ -54,7 +55,7 @@ std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
 }
 
 // calling this with points.size < 1 will make me sad
-cv::Point2f findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
+cv::Point findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
 		cv::Point extreme = points[0];
 		if(isX){ 
 				for(long unsigned int i = 1; i < points.size(); i++){
@@ -62,7 +63,7 @@ cv::Point2f findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
 						if(isMax && extreme.x < p.x) extreme = p;
 						else if(!isMax && extreme.x > p.x) extreme = p;
 				}
-				return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
+				return extreme;//cv::Point(extreme.x * 1.0f, extreme.y * 1.0f);
 		}
 		// if it's y
 		for(long unsigned int i = 1; i < points.size(); i++){
@@ -72,7 +73,7 @@ cv::Point2f findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
 				//   return extreme;
 				//   return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
 		}
-		return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
+		return extreme;//cv::Point(extreme.x * 1.0f, extreme.y * 1.0f);
 
 }
 
@@ -85,7 +86,7 @@ std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> po
     std::vector<cv::Point> cl = points[0]; // the first contour, the one that's on the left
     std::vector<cv::Point> cr = points[1]; // the second contour, the one that's on the right
     // let's assume that c1 is on the left
-
+ 
     std::vector<cv::Point2f> r; // the return vertex
 
     bool flip = false;
@@ -94,13 +95,13 @@ std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> po
     r.push_back(flipY(findExtreme(cl,false,false),flip)); // point 1
 
     r.push_back(flipY(findExtreme(cr,false,false),flip)); // point 2
-    r.push_back(flipY(findExtreme(cr,true ,true ),flip)); // point 3
+    r.push_back(flipY(findExtreme(cr,true ,false ),flip)); // point 3
     #if !MODE_FOUR_POINTS
     r.push_back(flipY(findExtreme(cr,false, true),flip)); //point 4
 
     r.push_back(flipY(findExtreme(cl,false,true ),flip)); // point 5
     #endif
-    r.push_back(flipY(findExtreme(cl,true, false),flip)); // point 6
+    r.push_back(flipY(findExtreme(cl,true, true ),flip)); // point 6
     //std::cout << "R: " << r << std::endl;
     return r;
 }
@@ -173,23 +174,28 @@ std::vector<cv::Point3f> generateWorldConstant(){
 }
 
 
-//std::shared_ptr<nt::NetworkTable> 
-/*void
+std::shared_ptr<nt::NetworkTable> 
+//void
 startNetworkTable() {
     nt::NetworkTableInstance init = nt::NetworkTableInstance::GetDefault();
-    init.StartClientTeam(623);
-    //init.GetTable("vision");
-    return ;
+    init.StartClient("10.6.23.2");
+    //init.StartClientTeam(624);
+   
+    return init.GetTable("vision");
+   
+}
+
+int bitCount(unsigned int);
+void pushValues(std::shared_ptr<nt::NetworkTable>, double,double,double,double,double);
+
+//std::shared_ptr<nt::NetworkTable> 
+/*void
+start_networktables(){
+	nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
+	//inst.StartClient("roborio-623-frc.local");
+	//return inst.GetTable("vision");
 }*/
 
-
-std::shared_ptr<nt::NetworkTable>
-start_networktables(void)
-{
-	auto inst = nt::NetworkTableInstance::GetDefault();
-	inst.StartClient("roborio-623-frc.local");
-	return inst.GetTable("vision");
-}
 
 
 int main(int args, char** argss){
@@ -201,7 +207,7 @@ int main(int args, char** argss){
     std::vector<cv::Point3f> worldTarget = generateWorldConstant();
 
     std::cout << "Starting Network Tables\n"; 
-    //std::shared_ptr<nt::NetworkTable> table = startNetworkTable();
+    std::shared_ptr<nt::NetworkTable> table = startNetworkTable();
     
 
     #ifdef ENABLE_DEBUG_OUTPUT
@@ -213,9 +219,9 @@ int main(int args, char** argss){
     
     
     cv::Mat distCoeff = fs["distortion_coefficients"].mat(); // 6: CV_64F  
-   
-
-
+    
+    
+    
     cv::Mat frame; // the next avalible frame is put here
     cv::VideoCapture cap;
     
@@ -245,7 +251,7 @@ int main(int args, char** argss){
         return -1;
     }
 
-  
+    unsigned int noContoursHit = 0;  
     // global loop, never terminates
     for (;;){
       // wait for a new frame from camera and store it into 'frame'
@@ -305,7 +311,13 @@ int main(int args, char** argss){
          
          // TODO make sure it still works when it can see more then one contour
          if( contours.size() == 0){
-           printf(" No contours\n");
+           noContoursHit++;
+           if(bitCount(noContoursHit) == 1) {
+             std::cout << noContoursHit << "\n";
+           } else if(noContoursHit < 2){
+             printf(" No contours\n");
+           }
+           pushValues(table,-1,-1,-1,-1,-1);
            continue;
          }
          if( contours.size() == 1){
@@ -321,10 +333,10 @@ int main(int args, char** argss){
          
          std::vector<cv::Point2f> points = contoursToPoints(contours);
          if(printPoints){
-         std::cout << "(" << points.size() << " " << 
-               points[0]<<","<<points[1]<<","<<points[2]<<","<<points[3] << 
+         std::cout << "(" << points.size() << ") " << 
+               points[0]<<","<<points[1]<<", "<<points[2]<<","<<points[3] << 
                points[4]<<","<<points[5];
-           std::cout << ")";
+           std::cout << "";
            std::cout << std::endl;          
            continue; 
          }
@@ -337,6 +349,7 @@ int main(int args, char** argss){
          cv::Mat rvec;
          cv::Mat tvec;
          bool solvePnPSucc = cv::solvePnP(cv::InputArray(worldTarget),cv::InputArray(points),cameraMatrix,distCoeff,rvec,tvec);
+         
          //std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
         // std::cout << "tvec: " << tvec << std::endl;
          //std::cout << "rvec: " << rvec << std::endl;
@@ -349,17 +362,37 @@ int main(int args, char** argss){
          double distance = pos[2];
          double angle1   = pos[3] * 180.0 / M_PI; 
          double angle2   = pos[4] * 180.0 / M_PI;
-
+         
          printf("x:%10f     z:%10f      distance:      %10f angle1:      %10f angle2:      %10f",x,z,distance,angle1,angle2);
+         std::cerr << angle1 << std::endl;
          //return 0;
+         //table->GetEntry("x").SetDouble(x);
+         //table->GetEntry("z").SetDouble(z);
+         pushValues(table,x,z,distance,angle1,angle2);
+         //printf("%f",angle1);
+ 
          std::cout << std::endl;
     }
     // the camera will be deinitialized automatically in VideoCapture destructor
     return 0;
 }
 
+void pushValues(std::shared_ptr<nt::NetworkTable> table, double x, double y, double dis, double ang1, double ang2){
+    table->GetEntry("x").SetDouble(x);
+    table->GetEntry("y").SetDouble(y);
+    table->GetEntry("dis").SetDouble(dis);
+    table->GetEntry("angle1").SetDouble(ang1);
+    table->GetEntry("angle2").SetDouble(ang2);
+}
 
-
+int bitCount(unsigned int n){
+    n = ((0xaaaaaaaa & n) >> 1) + (0x55555555 & n);
+    n = ((0xcccccccc & n) >> 2) + (0x33333333 & n);
+    n = ((0xf0f0f0f0 & n) >> 4) + (0x0f0f0f0f & n);
+    n = ((0xff00ff00 & n) >> 8) + (0x00ff00ff & n);
+    n = ((0xffff0000 & n) >> 16) + (0x0000ffff & n);
+    return n;
+}
 
 
 

@@ -3,18 +3,18 @@
 
 
 # add `-Wno-unused-variable` to make errors about unused variables go away
-CFLAGS=-Werror -Wall -Wno-psabi -g -Wno-unused-variable -O3
+CFLAGS=-Wall -Wno-psabi -g -Wno-unused-variable -O3
 
 # these are all the object files that need to be generated before the binary can be generated
 # 
 OBJS=vision_pipeline.o
 
-LIBS=-lcurl -lopencv_calib3d -lopencv_imgcodecs -lopencv_core -l opencv_imgproc -lopencv_highgui  -lopencv_videoio -L ~/ntcore/build/libs/ntcore/shared -L ~/wpiutil/build/libs/wpiutil/shared -L /usr/local/lib
+LIBS=-lpthread -lcurl -lopencv_calib3d -lopencv_imgcodecs -lopencv_core -l opencv_imgproc -lopencv_highgui  -lopencv_videoio ~/ntcore/build/libs/ntcore/static/libntcore.a  ~/ntcore/build/dependencies/wpiutil-cpp/linuxnativearm/linux/nativearm/static/libwpiutil.a 
 
-INC=-I ~/ntcore/src/main/native/include -I ~/wpiutil/src/main/native/include -I /usr/include/llvm-3.9 -I /usr/include/opencv4 -I /usr/local/include/opencv4
+INC=-I /usr/include/llvm-3.9 -I /usr/include/opencv4 -I /usr/local/include/opencv4 -I ~/ntcore/src/main/native/include/ -I ~/ntcore/build/dependencies/wpiutil-cpp/headers/
 
 
-GXX=g++ $(CFLAGS) $(INC)
+GXX=g++ $(CFLAGS) 
 
 .PHONY: all clean run
 
@@ -24,7 +24,7 @@ run: vision_pipeline
 	OPENCV_VIDEOIO_DEBUG=1 OPENCV_LOG_LEVEL=debug ./vision_pipeline
 
 %.o: %.cpp
-	$(GXX) $(DEBUG) -c -o $@ $<
+	$(GXX) $(INC) $(DEBUG) -c -o $@ $<
 
 vision_pipeline: $(OBJS)
 	$(GXX) -o $@ $(OBJS) $(LIBS) 
