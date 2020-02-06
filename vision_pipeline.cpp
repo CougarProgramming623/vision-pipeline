@@ -9,29 +9,16 @@
 #include "math.h"
 #include "networktables/NetworkTableInstance.h"
 #include "networktables/NetworkTable.h"
-//#include "ntcore_cpp.h"
-//#include <Twine.h>
 
-// when set to 1, only 4 points will be inputted
-#define MODE_FOUR_POINTS 1
 
 #define SET_WITH_CHECK(STATEMENT) \
 		if(!STATEMENT){ \
 				std::cerr << #STATEMENT << " is not supported by the video backend" << std::endl; \
 		};  
-/*
- *
- * Things to improve:
- *
- * - use defalt size values for std::vector when the size is going to be the same every time
- *
- *
- */
+
 void findContours(cv::Mat &, bool , std::vector<std::vector<cv::Point> > &);
 void filterContours(std::vector<std::vector<cv::Point> > &, double , double , double , double , double , double , double [], double , double , double , double , std::vector<std::vector<cv::Point> > &);
 
-// TODO: test
-// returns: x, z, distance, angle1, angle2
 std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
 		double x = tvec.at<double>(0,0); 
 		double z = tvec.at<double>(2,0); // there's a chance this should be 0,2
@@ -54,10 +41,6 @@ std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
 		return retur;
 }
 
-cv::Point flipY(cv::Point point, bool flip) {
-    if(flip) return cv::Point(point.x, -1 * point.y);
-    return point;
-}
 // calling this with points.size() < 1 will make me sad
 cv::Point findMaxXPoint(std::vector<cv::Point> points, bool wantMax){
     cv::Point extreme = points[0];
@@ -76,18 +59,23 @@ int findMaxY(std::vector<cv::Point> points){
     }
     return max;
 }
-/*
-cv::Point closesPoint(int xBase, int yBase, std::vector<cv::Point> points) {
+
+cv::Point closestPoint(int xBase, int yBase, std::vector<cv::Point> points) {
     cv::Point closest = points[0]; 
     float closestDistance = -1;
-    for(int i = 0: i < points.size(); i++){
-        cv::Point p = points[0];
+    for(unsigned int i = 0; i < points.size(); i++){
+        cv::Point p = points[i];
         int distanceX = std::abs(xBase - p.x);
         int distanceY = std::abs(yBase - p.y);
         float distance = std::sqrt(std::pow(distanceX,2) + std::pow(distanceY,2));
+        if(distance < closestDistance) {
+            closestDistance = distance;
+            closest = p;
+        }
     }
     return closest;
-}*/
+}
+
 std::vector<cv::Point> contoursToPoints(std::vector<cv::Point> points){
     std::vector<cv::Point> r; // the return vertex
     cv::Point topLeft = findMaxXPoint(points, false);
@@ -100,22 +88,12 @@ std::vector<cv::Point> contoursToPoints(std::vector<cv::Point> points){
     r.push_back(topLeft);
     r.push_back(topRight);
     
-    cv::Point bottomLeft = points[0];
-    cv::Point farBottomLeft = cv::Point(topLeft.x, bottomY);  
-    
-    //for(int i = 0; i < points.size(); i++) {
-            
+    cv::Point bottomLeftPoint = closestPoint(topLeft.x, bottomY,points);
+    cv::Point bottomRightPoint = closestPoint(topRight.x, bottomY,points);
+   
+    r.push_back(bottomRightPoint);
+    r.push_back(bottomLeftPoint); 
     return r;
-}
-
-#define TARGET_WIDTH 2.0f
-#define TARGET_HEIGHT 5.5f 
-#define TARGET_UPPER_OFFSET 6.0f
-#define TARGET_ROTATION 14.5f
-#define PI 3.14159265
-
-cv::Point3f flip(cv::Point3f point){
-       return cv::Point3f(-1 * point.x,point.y,point.z);
 }
 
 
@@ -123,41 +101,13 @@ cv::Point3f flip(cv::Point3f point){
 // to see if they look like the targets. I don't know 
 std::vector<cv::Point3f> generateWorldConstant(){
     std::cout << "generating world constants...";
-    double cosine = cos(TARGET_ROTATION * PI / 180.0);
-    double sine   = sin(TARGET_ROTATION * PI / 180.0);
     
-    //std::vector<cv::Point3f> rightTarget;
-    cv::Point3f right1 = cv::Point3f(TARGET_UPPER_OFFSET, 0.0f, 0.0f); // the top-most point. Point 2 of the target
-    
-    cv::Point3f right2 = cv::Point3f(right1.x + sine   * TARGET_HEIGHT,//the right-most point. Point 3 of the target
-                                     right1.y - cosine * TARGET_HEIGHT, 0.0f);
-
-    cv::Point3f right3 = cv::Point3f(right2.x - cosine * TARGET_WIDTH,
-                                     right2.y - sine   * TARGET_WIDTH, 0.0f);
-
-    cv::Point3f right4 = cv::Point3f(right3.x - sine   * TARGET_HEIGHT,
-                                     right3.y + cosine * TARGET_HEIGHT, 0.0f);
-    
-    std::cout << "right1 " << right1 << std::endl;
-    std::cout << "right2 " << right2 << std::endl;
-    std::cout << "right3 " << right3 << std::endl;
-    std::cout << "right4 " << right4 << std::endl;
-
- 
     std::vector<cv::Point3f> fullTarget;
-/*    fullTarget.push_back(flip(right1)); // point 1
-    fullTarget.push_back(right1); //       point 2
-    fullTarget.push_back(right2); //       point 3
-    #if !MODE_FOUR_POINTS
-    fullTarget.push_back(right3); //       point 4
-    fullTarget.push_back(flip(right3)); // point 5
-    #endif
-    fullTarget.push_back(flip(right2)); // point 6
-  */  std::cout << "done" << std::endl;
-    fullTarget.push_back(cv::Point3f(-6, 0, 0));
-    fullTarget.push_back(cv::Point3f( 6, 0, 0));
-    fullTarget.push_back(cv::Point3f(7.377, -5.83, 0));
-    fullTarget.push_back(cv::Point3f(-7.377, -5.83, 0));
+    float off = 81.25;
+    fullTarget.push_back(cv::Point3f(-18.4725,17 + off, 0));
+    fullTarget.push_back(cv::Point3f( 18.4725,17 + off, 0));
+    fullTarget.push_back(cv::Point3f( 9.8125, off, 0));
+    fullTarget.push_back(cv::Point3f(-9.8125, off, 0));
 
     printf("Target points in world cords:\n"); 
     int point = 1;
@@ -165,7 +115,7 @@ std::vector<cv::Point3f> generateWorldConstant(){
         std::cout << "point " << point << "  :  " << x << std::endl;
         point++;
     }
-    // for easy copy-paste into desmos to make sure it's decent
+    // for easy copy-paste into WA to make sure it's decent
     
     std::cout << "polygon(";
     for(cv::Point3f x : fullTarget) {
@@ -176,30 +126,16 @@ std::vector<cv::Point3f> generateWorldConstant(){
 }
 
 
-std::shared_ptr<nt::NetworkTable> 
-//void
-startNetworkTable() {
+std::shared_ptr<nt::NetworkTable> startNetworkTable() {
     nt::NetworkTableInstance init = nt::NetworkTableInstance::GetDefault();
     init.StartClient("10.6.23.2");
-    //init.StartClientTeam(624);
-   
     return init.GetTable("vision");
-   
 }
 
 int bitCount(unsigned int);
 void pushValues(std::shared_ptr<nt::NetworkTable>, double,double,double,double,double);
 
-//std::shared_ptr<nt::NetworkTable> 
-/*void
-start_networktables(){
-	nt::NetworkTableInstance inst = nt::NetworkTableInstance::GetDefault();
-	//inst.StartClient("roborio-623-frc.local");
-	//return inst.GetTable("vision");
-}*/
-
-
-
+// MAIN
 int main(int args, char** argss){
     std::cout << "" <<
        "=========" << std::endl <<
@@ -212,9 +148,9 @@ int main(int args, char** argss){
     std::shared_ptr<nt::NetworkTable> table = startNetworkTable();
     
 
-    #ifdef ENABLE_DEBUG_OUTPUT
-        std::cout << "reading from param.yaml" << std::endl;
-    #endif
+    
+    std::cout << "reading from param.yaml" << std::endl;
+    
     cv::FileStorage fs;
     fs.open("param.yaml",cv::FileStorage::READ);
     cv::Mat cameraMatrix = fs["camera_matrix"].mat();// 6: CV_64F
