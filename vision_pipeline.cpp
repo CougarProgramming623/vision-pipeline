@@ -54,55 +54,57 @@ std::vector<double> findPos(cv::Mat rvec,cv::Mat tvec){
 		return retur;
 }
 
-// calling this with points.size < 1 will make me sad
-cv::Point findExtreme(std::vector<cv::Point> points, bool isX, bool isMax) {
-		cv::Point extreme = points[0];
-		if(isX){ 
-				for(long unsigned int i = 1; i < points.size(); i++){
-						cv::Point p = points[i];
-						if(isMax && extreme.x < p.x) extreme = p;
-						else if(!isMax && extreme.x > p.x) extreme = p;
-				}
-				return extreme;//cv::Point(extreme.x * 1.0f, extreme.y * 1.0f);
-		}
-		// if it's y
-		for(long unsigned int i = 1; i < points.size(); i++){
-				cv::Point p = points[i];
-				if(isMax && extreme.y < p.y) extreme = p;
-				else if(!isMax && extreme.y > p.y) extreme = p;
-				//   return extreme;
-				//   return cv::Point2f(extreme.x * 1.0f, extreme.y * 1.0f);
-		}
-		return extreme;//cv::Point(extreme.x * 1.0f, extreme.y * 1.0f);
-
-}
-
 cv::Point flipY(cv::Point point, bool flip) {
     if(flip) return cv::Point(point.x, -1 * point.y);
     return point;
 }
+// calling this with points.size() < 1 will make me sad
+cv::Point findMaxXPoint(std::vector<cv::Point> points, bool wantMax){
+    cv::Point extreme = points[0];
+    for(long unsigned int i = 1; i < points.size(); i++){
+        cv::Point p = points[i];
+        if(wantMax && p.x > extreme.x) extreme = p;
+        else if (!wantMax && p.x < extreme.x) extreme = p;
+    }
+    return extreme;
+} 
 
-std::vector<cv::Point2f> contoursToPoints(std::vector<std::vector<cv::Point>> points){
-    std::vector<cv::Point> cl = points[0]; // the first contour, the one that's on the left
-    std::vector<cv::Point> cr = points[1]; // the second contour, the one that's on the right
-    // let's assume that c1 is on the left
- 
-    std::vector<cv::Point2f> r; // the return vertex
-
-    bool flip = false;
-
-    //std::cout << "cl " << cl << std::endl << "cr " << cr << std::endl;
-    r.push_back(flipY(findExtreme(cl,false,false),flip)); // point 1
-
-    r.push_back(flipY(findExtreme(cr,false,false),flip)); // point 2
-    r.push_back(flipY(findExtreme(cr,true ,false ),flip)); // point 3
-    #if !MODE_FOUR_POINTS
-    r.push_back(flipY(findExtreme(cr,false, true),flip)); //point 4
-
-    r.push_back(flipY(findExtreme(cl,false,true ),flip)); // point 5
-    #endif
-    r.push_back(flipY(findExtreme(cl,true, true ),flip)); // point 6
-    //std::cout << "R: " << r << std::endl;
+int findMaxY(std::vector<cv::Point> points){
+    int max = points[0].y;
+    for(long unsigned int i = 1; i < points.size(); i++){
+        if(points[i].y > max) max = points[i].y;
+    }
+    return max;
+}
+/*
+cv::Point closesPoint(int xBase, int yBase, std::vector<cv::Point> points) {
+    cv::Point closest = points[0]; 
+    float closestDistance = -1;
+    for(int i = 0: i < points.size(); i++){
+        cv::Point p = points[0];
+        int distanceX = std::abs(xBase - p.x);
+        int distanceY = std::abs(yBase - p.y);
+        float distance = std::sqrt(std::pow(distanceX,2) + std::pow(distanceY,2));
+    }
+    return closest;
+}*/
+std::vector<cv::Point> contoursToPoints(std::vector<cv::Point> points){
+    std::vector<cv::Point> r; // the return vertex
+    cv::Point topLeft = findMaxXPoint(points, false);
+    cv::Point topRight = findMaxXPoint(points, true); 
+    
+    int properY = findMaxY(points) - (topRight.y + topLeft.y)/2;
+    int bottomY = (topRight.y + topLeft.y)/2 + properY*2;
+    // get the point nearest to (topLeft.x, bottomY) for the bottom left value
+    // get the point nearest to (topRight.x, bottomY) for the bottom-right value
+    r.push_back(topLeft);
+    r.push_back(topRight);
+    
+    cv::Point bottomLeft = points[0];
+    cv::Point farBottomLeft = cv::Point(topLeft.x, bottomY);  
+    
+    //for(int i = 0; i < points.size(); i++) {
+            
     return r;
 }
 
@@ -273,7 +275,7 @@ int main(int args, char** argss){
 
          double hue[] = {33.99280575539568, 93.99317406143345}; // these are the hue values it must fall between
 	     double sat[] = {100.89928057553958, 255.0}; // sateration is just "amount". Means we need a lot of green
-         double val[] = {85.69424460431654, 255.0};
+         double val[] = {45.69424460431654, 255.0};
          cv::Mat img_filtered;
          cv::inRange(img_hsv,cv::Scalar(hue[0],sat[0],val[0]),cv::Scalar(hue[1],sat[1],val[1]),img_filtered);
          img_hsv.release();
@@ -321,21 +323,19 @@ int main(int args, char** argss){
            continue;
          }
          if( contours.size() == 1){
-           printf(" One Contour found\n");
-           continue; 
+         //  printf(" One Contour found\n");
+         //  continue; 
          }
 
-         if( contours.size() > 2){
+         if( contours.size() > 1){
              printf("more then one contour found\n");
             continue;
          }
-         bool printPoints = false;
-         
-         std::vector<cv::Point2f> points = contoursToPoints(contours);
+         //std::cout << "contour " << contours[0] << "\n";
+         bool printPoints = true;
+         std::vector<cv::Point> points = contoursToPoints(contours[0]);
          if(printPoints){
-         std::cout << "(" << points.size() << ") " << 
-               points[0]<<","<<points[1]<<", "<<points[2]<<","<<points[3] << 
-               points[4]<<","<<points[5];
+           std::cout << points[0] << "," << points[1] << ", " << points[2] << "," <<points[3];
            std::cout << "";
            std::cout << std::endl;          
            continue; 
