@@ -80,7 +80,7 @@ std::vector<cv::Point> contoursToPoints(std::vector<cv::Point> points){
     std::vector<cv::Point> r; // the return vertex
     cv::Point topLeft = findMaxXPoint(points, false);
     cv::Point topRight = findMaxXPoint(points, true); 
-    
+    std::cout << "topLeft: " << topLeft << "\ntopRight: " << topRight << "\n"; 
     int properY = findMaxY(points) - (topRight.y + topLeft.y)/2;
     int bottomY = (topRight.y + topLeft.y)/2 + properY*2;
     // get the point nearest to (topLeft.x, bottomY) for the bottom left value
@@ -209,7 +209,7 @@ int main(int args, char** argss){
          cv::cvtColor(frame,img_hsv,cv::COLOR_RGB2HSV); 
          frame.release(); // release it from memory, saving memory
 
-         double hue[] = {33.99280575539568, 93.99317406143345}; // these are the hue values it must fall between
+         double hue[] = {60.99280575539568, 107.99317406143345}; // these are the hue values it must fall between
 	     double sat[] = {100.89928057553958, 255.0}; // sateration is just "amount". Means we need a lot of green
          double val[] = {45.69424460431654, 255.0};
          cv::Mat img_filtered;
@@ -220,10 +220,11 @@ int main(int args, char** argss){
          // https://stackoverflow.com/questions/10167534/how-to-find-out-what-type-of-a-mat-object-is-with-mattype-in-opencv
          std::vector<std::vector<cv::Point>> og_contours;// original contours
          findContours(img_filtered,false,og_contours);
+         //std::cout << "raw contours: " << og_contours.size() <<  "\n";
          img_filtered.release();
          // filter contours
          std::vector<std::vector<cv::Point>> contours;
-         double filterContoursMinArea = 0;  
+         /*double filterContoursMinArea = 0;  
          double filterContoursMinPerimeter = 100.0;  
          double filterContoursMinWidth = 0;  
          double filterContoursMaxWidth = 1000;  
@@ -247,7 +248,16 @@ int main(int args, char** argss){
                         filterContoursMinRatio,
                         filterContoursMaxRatio, contours);
          
-         // TODO make sure it still works when it can see more then one contour
+         */
+        
+         for(unsigned int i = 0; i < og_contours.size(); i++){
+             std::vector<cv::Point> points = og_contours[i];
+             if(arcLength(points, true) < 100) {
+                 contours.push_back(points);
+             } 
+         }
+
+         
          if( contours.size() == 0){
            noContoursHit++;
            if(bitCount(noContoursHit) == 1) {
@@ -258,16 +268,17 @@ int main(int args, char** argss){
            pushValues(table,-1,-1,-1,-1,-1);
            continue;
          }
+         noContoursHit = 0;
          if( contours.size() == 1){
          //  printf(" One Contour found\n");
          //  continue; 
          }
-
+         
          if( contours.size() > 1){
              printf("more then one contour found\n");
             continue;
          }
-         //std::cout << "contour " << contours[0] << "\n";
+         std::cout << "contour " << contours[0] << "\n";
          bool printPoints = true;
          std::vector<cv::Point> points = contoursToPoints(contours[0]);
          if(printPoints){
@@ -373,19 +384,19 @@ void filterContours(std::vector<std::vector<cv::Point> > &inputContours, double 
 	std::vector<cv::Point> hull;
 	output.clear();
 	for (std::vector<cv::Point> contour: inputContours) {
-//		cv::Rect bb = boundingRect(contour);
-//		if (bb.width < minWidth || bb.width > maxWidth) continue;
-//		if (bb.height < minHeight || bb.height > maxHeight) continue;
-//		double area = cv::contourArea(contour);
-//		if (area < minArea) continue;
-//		if (arcLength(contour, true) < minPerimeter) continue;
-//		cv::convexHull(cv::Mat(contour, true), hull);
-//		double solid = 100 * area / cv::contourArea(hull);
-//		if (solid < solidity[0] || solid > solidity[1]) continue;
-//       if (contour.size() < minVertexCount || contour.size() > maxVertexCount) 
-//            continue;
-//        double ratio = (double) bb.width / (double) bb.height;
-//        if (ratio < minRatio || ratio > maxRatio) continue;
+		cv::Rect bb = boundingRect(contour);
+		if (bb.width < minWidth || bb.width > maxWidth) continue;
+		if (bb.height < minHeight || bb.height > maxHeight) continue;
+		double area = cv::contourArea(contour);
+		if (area < minArea) continue;
+		if (arcLength(contour, true) < minPerimeter) continue;
+		cv::convexHull(cv::Mat(contour, true), hull);
+		double solid = 100 * area / cv::contourArea(hull);
+ 		if (solid < solidity[0] || solid > solidity[1]) continue;
+        if (contour.size() < minVertexCount || contour.size() > maxVertexCount) 
+              continue;
+          double ratio = (double) bb.width / (double) bb.height;
+        if (ratio < minRatio || ratio > maxRatio) continue;
         output.push_back(contour);
     }
 }
