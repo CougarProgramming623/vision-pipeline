@@ -1,0 +1,62 @@
+g++ -Wall -Wno-psabi -g -Wno-unused-variable -O3  -I /usr/include/llvm-3.9 -I /usr/include/opencv4 -I /usr/local/include/opencv4 -I ~/ntcore/src/main/native/include/ -I ~/ntcore/build/dependencies/wpiutil-cpp/headers/  -c -o vision_pipeline.o vision_pipeline.cpp
+vision_pipeline.cpp: In function ‘std::vector<cv::Point3_<int> > generateWorldConstant()’:
+vision_pipeline.cpp:122:62: error: no matching function for call to ‘cv::Point3_<int>::Point3_(int, int)’
+     fullTarget.push_back(cv::Point3i(-18/*.4725,17*/ + off, 0));
+                                                              ^
+In file included from /usr/local/include/opencv4/opencv2/core.hpp:58:0,
+                 from vision_pipeline.cpp:2:
+/usr/local/include/opencv4/opencv2/core/types.hpp:1447:1: note: candidate: cv::Point3_<_Tp>::Point3_(const cv::Vec<T2, 3>&) [with _Tp = int]
+ Point3_<_Tp>::Point3_(const Vec<_Tp, 3>& v)
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1447:1: note:   candidate expects 1 argument, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1443:1: note: candidate: cv::Point3_<_Tp>::Point3_(const cv::Point_<_Tp>&) [with _Tp = int]
+ Point3_<_Tp>::Point3_(const Point_<_Tp>& pt)
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1443:1: note:   candidate expects 1 argument, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1439:1: note: candidate: cv::Point3_<_Tp>::Point3_(cv::Point3_<_Tp>&&) [with _Tp = int]
+ Point3_<_Tp>::Point3_(Point3_&& pt) CV_NOEXCEPT
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1439:1: note:   candidate expects 1 argument, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1435:1: note: candidate: cv::Point3_<_Tp>::Point3_(const cv::Point3_<_Tp>&) [with _Tp = int]
+ Point3_<_Tp>::Point3_(const Point3_& pt)
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1435:1: note:   candidate expects 1 argument, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1431:1: note: candidate: cv::Point3_<_Tp>::Point3_(_Tp, _Tp, _Tp) [with _Tp = int]
+ Point3_<_Tp>::Point3_(_Tp _x, _Tp _y, _Tp _z)
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1431:1: note:   candidate expects 3 arguments, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1427:1: note: candidate: cv::Point3_<_Tp>::Point3_() [with _Tp = int]
+ Point3_<_Tp>::Point3_()
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1427:1: note:   candidate expects 0 arguments, 2 provided
+vision_pipeline.cpp:123:62: error: no matching function for call to ‘cv::Point3_<int>::Point3_(int, int)’
+     fullTarget.push_back(cv::Point3i( 18/*.4725,17*/ + off, 0));
+                                                              ^
+In file included from /usr/local/include/opencv4/opencv2/core.hpp:58:0,
+                 from vision_pipeline.cpp:2:
+/usr/local/include/opencv4/opencv2/core/types.hpp:1447:1: note: candidate: cv::Point3_<_Tp>::Point3_(const cv::Vec<T2, 3>&) [with _Tp = int]
+ Point3_<_Tp>::Point3_(const Vec<_Tp, 3>& v)
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1447:1: note:   candidate expects 1 argument, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1443:1: note: candidate: cv::Point3_<_Tp>::Point3_(const cv::Point_<_Tp>&) [with _Tp = int]
+ Point3_<_Tp>::Point3_(const Point_<_Tp>& pt)
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1443:1: note:   candidate expects 1 argument, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1439:1: note: candidate: cv::Point3_<_Tp>::Point3_(cv::Point3_<_Tp>&&) [with _Tp = int]
+ Point3_<_Tp>::Point3_(Point3_&& pt) CV_NOEXCEPT
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1439:1: note:   candidate expects 1 argument, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1435:1: note: candidate: cv::Point3_<_Tp>::Point3_(const cv::Point3_<_Tp>&) [with _Tp = int]
+ Point3_<_Tp>::Point3_(const Point3_& pt)
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1435:1: note:   candidate expects 1 argument, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1431:1: note: candidate: cv::Point3_<_Tp>::Point3_(_Tp, _Tp, _Tp) [with _Tp = int]
+ Point3_<_Tp>::Point3_(_Tp _x, _Tp _y, _Tp _z)
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1431:1: note:   candidate expects 3 arguments, 2 provided
+/usr/local/include/opencv4/opencv2/core/types.hpp:1427:1: note: candidate: cv::Point3_<_Tp>::Point3_() [with _Tp = int]
+ Point3_<_Tp>::Point3_()
+ ^~~~~~~~~~~~
+/usr/local/include/opencv4/opencv2/core/types.hpp:1427:1: note:   candidate expects 0 arguments, 2 provided
+Makefile:27: recipe for target 'vision_pipeline.o' failed
+make: *** [vision_pipeline.o] Error 1

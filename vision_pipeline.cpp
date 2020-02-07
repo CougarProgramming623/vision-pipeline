@@ -80,46 +80,61 @@ std::vector<cv::Point> contoursToPoints(std::vector<cv::Point> points){
     std::vector<cv::Point> r; // the return vertex
     cv::Point topLeft = findMaxXPoint(points, false);
     cv::Point topRight = findMaxXPoint(points, true); 
-    std::cout << "topLeft: " << topLeft << "\ntopRight: " << topRight << "\n"; 
-    int properY = findMaxY(points) - (topRight.y + topLeft.y)/2;
-    int bottomY = (topRight.y + topLeft.y)/2 + properY*2;
+    //std::cout << "topLeft: " << topLeft << "\ntopRight: " << topRight << "\n"; 
+    //int properY = findMaxY(points) - (topRight.y + topLeft.y)/2;
+    //int bottomY = (topRight.y + topLeft.y)/2 + properY*2;
+    //std::cout << "properY: " << properY << " bottomY: " << bottomY << "\n";
     // get the point nearest to (topLeft.x, bottomY) for the bottom left value
     // get the point nearest to (topRight.x, bottomY) for the bottom-right value
     r.push_back(topLeft);
     r.push_back(topRight);
     
-    cv::Point bottomLeftPoint = closestPoint(topLeft.x, bottomY,points);
-    cv::Point bottomRightPoint = closestPoint(topRight.x, bottomY,points);
-   
-    r.push_back(bottomRightPoint);
-    r.push_back(bottomLeftPoint); 
+    //cv::Point bottomLeftPoint = closestPoint(topLeft.x, bottomY,points);
+    //cv::Point bottomRightPoint = closestPoint(topRight.x, bottomY,points);
+    
+    //r.push_back(bottomRightPoint);
+    //r.push_back(bottomLeftPoint);
+    int middleX = (topRight.x + topLeft.x) / 2;
+    std::vector<cv::Point> middle;
+    
+    for(unsigned int i = 0; i < points.size(); i++){
+        if(std::abs(points[i].x - middleX) < 5){ 
+            middle.push_back(points[i]);
+        }
+    }
+    std::cout << "middle points: " << middle << "\n";
+    cv::Point realMiddle = middle[0];
+    for(unsigned int i = 1; i < middle.size(); i++){
+        if(middle[i].y < realMiddle.y) realMiddle = middle[i];
+    } 
+    r.push_back(realMiddle); 
     return r;
 }
 
 
 // generate world cords. This method has been rigorously tested by pasting polygons into desmos and wolfram alpha
 // to see if they look like the targets. I don't know 
-std::vector<cv::Point3f> generateWorldConstant(){
+std::vector<cv::Point3i> generateWorldConstant(){
     std::cout << "generating world constants...";
     
-    std::vector<cv::Point3f> fullTarget;
-    float off = 81.25;
-    fullTarget.push_back(cv::Point3f(-18.4725,17 + off, 0));
-    fullTarget.push_back(cv::Point3f( 18.4725,17 + off, 0));
-    fullTarget.push_back(cv::Point3f( 9.8125, off, 0));
-    fullTarget.push_back(cv::Point3f(-9.8125, off, 0));
+    std::vector<cv::Point3i> fullTarget;
+    int off = 81/*.25*/;
+    fullTarget.push_back(cv::Point3i(-18/*.4725*/,17 + off, 0));
+    fullTarget.push_back(cv::Point3i( 18/*.4725*/,17 + off, 0));
+    fullTarget.push_back(cv::Point3i(0, off, 0));
+    //fullTarget.push_back(cv::Point3f(-9.8125, off, 0));
 
     printf("Target points in world cords:\n"); 
     int point = 1;
-    for(cv::Point3f x : fullTarget){
+    for(cv::Point3i x : fullTarget){
         std::cout << "point " << point << "  :  " << x << std::endl;
         point++;
     }
     // for easy copy-paste into WA to make sure it's decent
     
     std::cout << "polygon(";
-    for(cv::Point3f x : fullTarget) {
-        printf("(%f,%f),",x.x,x.y); // remember to remove the last ,
+    for(cv::Point3i x : fullTarget) {
+        printf("(%i,%i),",x.x,x.y); // remember to remove the last ,
     }
     std::cout << ")" << std::endl;
     return fullTarget;
@@ -142,7 +157,7 @@ int main(int args, char** argss){
        " Vision Pipeline, 2019" << std::endl <<      
        " Contributors: Carson Graham" << std::endl <<
        "=========" << std::endl;
-    std::vector<cv::Point3f> worldTarget = generateWorldConstant();
+    std::vector<cv::Point3i> worldTarget = generateWorldConstant();
 
     std::cout << "Starting Network Tables\n"; 
     std::shared_ptr<nt::NetworkTable> table = startNetworkTable();
@@ -179,7 +194,7 @@ int main(int args, char** argss){
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_CONTRAST,5));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_SHARPNESS,50));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_AUTO_EXPOSURE,1)); 
-    SET_WITH_CHECK(cap.set(cv::CAP_PROP_EXPOSURE,1));
+    SET_WITH_CHECK(cap.set(cv::CAP_PROP_EXPOSURE,9));
     SET_WITH_CHECK(cap.set(cv::CAP_PROP_BRIGHTNESS, 30));
     std::cout << "camera setup done" << std::endl;
 
@@ -188,8 +203,9 @@ int main(int args, char** argss){
         std::cerr << "ERROR! Unable to open camera\n";
         return -1;
     }
+    
 
-    unsigned int noContoursHit = 0;  
+        unsigned int noContoursHit = 0;  
     // global loop, never terminates
     for (;;){
       // wait for a new frame from camera and store it into 'frame'
@@ -201,12 +217,12 @@ int main(int args, char** argss){
             //break;
             continue;
         }
-        //std::cout << "size: " << frame.size() << std::endl;
+            //std::cout << "size: " << frame.size() << std::endl;
    //       printf("channels: %d\ntype: %d\n",frame.channels(),frame.type());
         ;
         // std::cout << "cols:" << frame.cols << " rows: " << frame.rows << std::endl;
          cv::Mat img_hsv;
-         cv::cvtColor(frame,img_hsv,cv::COLOR_RGB2HSV); 
+         cv::cvtColor(frame,img_hsv,cv::COLOR_BGR2HSV); 
          frame.release(); // release it from memory, saving memory
 
          double hue[] = {60.99280575539568, 107.99317406143345}; // these are the hue values it must fall between
@@ -214,12 +230,14 @@ int main(int args, char** argss){
          double val[] = {45.69424460431654, 255.0};
          cv::Mat img_filtered;
          cv::inRange(img_hsv,cv::Scalar(hue[0],sat[0],val[0]),cv::Scalar(hue[1],sat[1],val[1]),img_filtered);
-         img_hsv.release();
+         
+        
+
          // ASSERT img_filtered.type() == 0
          // this is a 8-bit integer with 1 channel
          // https://stackoverflow.com/questions/10167534/how-to-find-out-what-type-of-a-mat-object-is-with-mattype-in-opencv
-         std::vector<std::vector<cv::Point>> og_contours;// original contours
-         findContours(img_filtered,false,og_contours);
+         std::vector<std::vector<cv::Point>> o_contours;// original contours
+         findContours(img_filtered,false,o_contours);
          //std::cout << "raw contours: " << og_contours.size() <<  "\n";
          img_filtered.release();
          // filter contours
@@ -250,13 +268,14 @@ int main(int args, char** argss){
          
          */
         
-         for(unsigned int i = 0; i < og_contours.size(); i++){
-             std::vector<cv::Point> points = og_contours[i];
-         /*    if(arcLength(points, true) < 100) {
+         for(unsigned int i = 0; i < o_contours.size(); i++){
+             std::vector<cv::Point> points = o_contours[i];
+             if(arcLength(points, true) > 100) {
                  contours.push_back(points);
-             }*/ 
-	     std::cout << "contour " << i << " : " << points; 
-         }
+             } 
+	        // std::cout << "contour " << i << " : " << points << "\n"; 
+            
+          }
 
          
          if( contours.size() == 0){
@@ -279,24 +298,24 @@ int main(int args, char** argss){
              printf("more then one contour found\n");
             continue;
          }
-         std::cout << "contour " << contours[0] << "\n";
-         bool printPoints = true;
+         //std::cout << "contour " << contours[0] << "\n";
+         bool printPoints = false;
          std::vector<cv::Point> points = contoursToPoints(contours[0]);
          if(printPoints){
-           std::cout << points[0] << "," << points[1] << ", " << points[2] << "," <<points[3];
+           std::cout << points[0] << "," << points[1] << ", " << points[2];// << "," <<points[3];
            std::cout << "";
            std::cout << std::endl;          
            continue; 
          }
 
-         //cv::Mat opoints = cv::InputArray(worldTarget).getMat();
-         //cv::Mat ipoints = cv::InputArray(points).getMat();
-         //std::cout << "world target " << worldTarget << "  points  "  << points << std::endl;
+         cv::Mat opoints = cv::InputArray(worldTarget).getMat();
+         cv::Mat ipoints = cv::InputArray(points).getMat();
+         std::cout << "world target " << worldTarget << "  points  "  << points << std::endl;
          // continue;
          // m a t h
          cv::Mat rvec;
          cv::Mat tvec;
-         bool solvePnPSucc = cv::solvePnP(cv::InputArray(worldTarget),cv::InputArray(points),cameraMatrix,distCoeff,rvec,tvec);
+         bool solvePnPSucc = cv::solvePnP(cv::InputArray(worldTarget),cv::InputArray(points),cameraMatrix,distCoeff,rvec,tvec, true);
          
          //std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
         // std::cout << "tvec: " << tvec << std::endl;
