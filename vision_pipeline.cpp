@@ -252,9 +252,10 @@ int main(int args, char** argss){
         
          for(unsigned int i = 0; i < og_contours.size(); i++){
              std::vector<cv::Point> points = og_contours[i];
-             if(arcLength(points, true) < 100) {
+         /*    if(arcLength(points, true) < 100) {
                  contours.push_back(points);
-             } 
+             }*/ 
+	     std::cout << "contour " << i << " : " << points; 
          }
 
          
