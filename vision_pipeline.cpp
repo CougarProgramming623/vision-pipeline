@@ -75,9 +75,10 @@ cv::Point closestPoint(int xBase, int yBase, std::vector<cv::Point> points) {
     }
     return closest;
 }
-
-std::vector<cv::Point> contoursToPoints(std::vector<cv::Point> points){
-    std::vector<cv::Point> r; // the return vertex
+//std::vector<cv::Point2f> approx(std::vector<cv::Point2f> points, int backoff){
+    
+std::vector<cv::Point2f> contoursToPoints(std::vector<cv::Point> points){
+    //std::vector<cv::Point> r; // the return vertex
     cv::Point topLeft = findMaxXPoint(points, false);
     cv::Point topRight = findMaxXPoint(points, true); 
     //std::cout << "topLeft: " << topLeft << "\ntopRight: " << topRight << "\n"; 
@@ -86,8 +87,8 @@ std::vector<cv::Point> contoursToPoints(std::vector<cv::Point> points){
     //std::cout << "properY: " << properY << " bottomY: " << bottomY << "\n";
     // get the point nearest to (topLeft.x, bottomY) for the bottom left value
     // get the point nearest to (topRight.x, bottomY) for the bottom-right value
-    r.push_back(topLeft);
-    r.push_back(topRight);
+//    r.push_back(topLeft);
+//    r.push_back(topRight);
     
     //cv::Point bottomLeftPoint = closestPoint(topLeft.x, bottomY,points);
     //cv::Point bottomRightPoint = closestPoint(topRight.x, bottomY,points);
@@ -95,46 +96,38 @@ std::vector<cv::Point> contoursToPoints(std::vector<cv::Point> points){
     //r.push_back(bottomRightPoint);
     //r.push_back(bottomLeftPoint);
     int middleX = (topRight.x + topLeft.x) / 2;
-    std::vector<cv::Point> middle;
-    
-    for(unsigned int i = 0; i < points.size(); i++){
-        if(std::abs(points[i].x - middleX) < 5){ 
-            middle.push_back(points[i]);
-        }
-    }
-    std::cout << "middle points: " << middle << "\n";
-    cv::Point realMiddle = middle[0];
-    for(unsigned int i = 1; i < middle.size(); i++){
-        if(middle[i].y < realMiddle.y) realMiddle = middle[i];
-    } 
-    r.push_back(realMiddle); 
-    return r;
+    std::vector<cv::Point> hull;
+    cv::convexHull(points, hull, false);
+    //std::cout << "hull: " << hull << "\n";
+    std::vector<cv::Point2f> approxPoly;
+    cv::approxPolyDP(hull, approxPoly, 10.0,true);  
+    return approxPoly;
 }
 
 
 // generate world cords. This method has been rigorously tested by pasting polygons into desmos and wolfram alpha
 // to see if they look like the targets. I don't know 
-std::vector<cv::Point3i> generateWorldConstant(){
+std::vector<cv::Point3f> generateWorldConstant(){
     std::cout << "generating world constants...";
     
-    std::vector<cv::Point3i> fullTarget;
-    int off = 81/*.25*/;
-    fullTarget.push_back(cv::Point3i(-18/*.4725*/,17 + off, 0));
-    fullTarget.push_back(cv::Point3i( 18/*.4725*/,17 + off, 0));
-    fullTarget.push_back(cv::Point3i(0, off, 0));
-    //fullTarget.push_back(cv::Point3f(-9.8125, off, 0));
+    std::vector<cv::Point3f> fullTarget;
+    int off = 81.25;
+    fullTarget.push_back(cv::Point3f(-18.4725,17 + off, 0));
+    fullTarget.push_back(cv::Point3f( 18.4725,17 + off, 0));
+    fullTarget.push_back(cv::Point3f(9.8125, off, 0));
+    fullTarget.push_back(cv::Point3f(-9.8125, off, 0));
 
     printf("Target points in world cords:\n"); 
     int point = 1;
-    for(cv::Point3i x : fullTarget){
+    for(cv::Point3f x : fullTarget){
         std::cout << "point " << point << "  :  " << x << std::endl;
         point++;
     }
     // for easy copy-paste into WA to make sure it's decent
     
     std::cout << "polygon(";
-    for(cv::Point3i x : fullTarget) {
-        printf("(%i,%i),",x.x,x.y); // remember to remove the last ,
+    for(cv::Point3f x : fullTarget) {
+        printf("(%f,%f),",x.x,x.y); // remember to remove the last ,
     }
     std::cout << ")" << std::endl;
     return fullTarget;
@@ -157,7 +150,7 @@ int main(int args, char** argss){
        " Vision Pipeline, 2019" << std::endl <<      
        " Contributors: Carson Graham" << std::endl <<
        "=========" << std::endl;
-    std::vector<cv::Point3i> worldTarget = generateWorldConstant();
+    std::vector<cv::Point3f> worldTarget = generateWorldConstant();
 
     std::cout << "Starting Network Tables\n"; 
     std::shared_ptr<nt::NetworkTable> table = startNetworkTable();
@@ -225,9 +218,9 @@ int main(int args, char** argss){
          cv::cvtColor(frame,img_hsv,cv::COLOR_BGR2HSV); 
          frame.release(); // release it from memory, saving memory
 
-         double hue[] = {60.99280575539568, 107.99317406143345}; // these are the hue values it must fall between
-	     double sat[] = {100.89928057553958, 255.0}; // sateration is just "amount". Means we need a lot of green
-         double val[] = {45.69424460431654, 255.0};
+         double hue[] = {60.0, 107.0}; // these are the hue values it must fall between
+	     double sat[] = {147.0, 255.0}; // means we need a lot of green
+         double val[] = {100.0, 255.0}; // also the same as saturation but different?
          cv::Mat img_filtered;
          cv::inRange(img_hsv,cv::Scalar(hue[0],sat[0],val[0]),cv::Scalar(hue[1],sat[1],val[1]),img_filtered);
          
@@ -300,9 +293,9 @@ int main(int args, char** argss){
          }
          //std::cout << "contour " << contours[0] << "\n";
          bool printPoints = false;
-         std::vector<cv::Point> points = contoursToPoints(contours[0]);
+         std::vector<cv::Point2f> points = contoursToPoints(contours[0]);
          if(printPoints){
-           std::cout << points[0] << "," << points[1] << ", " << points[2];// << "," <<points[3];
+           std::cout << points[0] << "," << points[1] << ", " << points[2] << "," <<points[3];
            std::cout << "";
            std::cout << std::endl;          
            continue; 
@@ -310,12 +303,17 @@ int main(int args, char** argss){
 
          cv::Mat opoints = cv::InputArray(worldTarget).getMat();
          cv::Mat ipoints = cv::InputArray(points).getMat();
-         std::cout << "world target " << worldTarget << "  points  "  << points << std::endl;
+         //std::cout << "world target " << opoints.type() << " " << worldTarget 
+         //          << "  points  "  << ipoints.type() << " " << points << std::endl;
          // continue;
          // m a t h
+         if(points.size() != 4){
+             printf("Found %i points, expecting 4\n", points.size());
+             continue;
+         }
          cv::Mat rvec;
          cv::Mat tvec;
-         bool solvePnPSucc = cv::solvePnP(cv::InputArray(worldTarget),cv::InputArray(points),cameraMatrix,distCoeff,rvec,tvec, true);
+         bool solvePnPSucc = cv::solvePnP(cv::InputArray(worldTarget),cv::InputArray(points),cameraMatrix,distCoeff,rvec,tvec);
          
          //std::cout << "solvePnPSucc: " << solvePnPSucc << std::endl;
         // std::cout << "tvec: " << tvec << std::endl;
@@ -327,7 +325,7 @@ int main(int args, char** argss){
          double x        = pos[0];
          double z        = pos[1];
          double distance = pos[2];
-         double angle1   = pos[3] * 180.0 / M_PI; 
+         double angle1   = pos[3] * 180.0 / M_PI + 40; 
          double angle2   = pos[4] * 180.0 / M_PI;
          
          printf("x:%10f     z:%10f      distance:      %10f angle1:      %10f angle2:      %10f",x,z,distance,angle1,angle2);
