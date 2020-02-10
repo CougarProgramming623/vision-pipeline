@@ -111,11 +111,11 @@ std::vector<cv::Point3f> generateWorldConstant(){
     std::cout << "generating world constants...";
     
     std::vector<cv::Point3f> fullTarget;
-    int off = 81.25;
-    fullTarget.push_back(cv::Point3f(-18.4725,17 + off, 0));
-    fullTarget.push_back(cv::Point3f( 18.4725,17 + off, 0));
-    fullTarget.push_back(cv::Point3f(9.8125, off, 0));
-    fullTarget.push_back(cv::Point3f(-9.8125, off, 0));
+    //int off = 81.25;
+    fullTarget.push_back(cv::Point3f(-18.4725,0, 0));
+    fullTarget.push_back(cv::Point3f( 18.4725,0, 0));
+    fullTarget.push_back(cv::Point3f(9.8125, -17, 0));
+    fullTarget.push_back(cv::Point3f(-9.8125,-17, 0));
 
     printf("Target points in world cords:\n"); 
     int point = 1;
@@ -325,7 +325,7 @@ int main(int args, char** argss){
          double x        = pos[0];
          double z        = pos[1];
          double distance = pos[2];
-         double angle1   = pos[3] * 180.0 / M_PI + 40; 
+         double angle1   = pos[3] * 180.0 / M_PI; 
          double angle2   = pos[4] * 180.0 / M_PI;
          
          printf("x:%10f     z:%10f      distance:      %10f angle1:      %10f angle2:      %10f",x,z,distance,angle1,angle2);
